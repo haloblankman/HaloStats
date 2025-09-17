@@ -1,0 +1,98 @@
+﻿<Window x:Class="HaloStats.Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HaloStats.Client"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="800">
+    <Grid>
+        <TabControl x:Name="GamesTabControl" ItemsSource="{Binding Games}" SelectedIndex="{Binding SelectedGameIndex, Mode=TwoWay}">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding GameTypeName}" />
+                        <Button Content="×"
+                        Width="18" Height="18"
+                        Padding="0"
+                        Margin="2,0,0,0"
+                        Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        CommandParameter="{Binding}" 
+                        ToolTip="Close tab"
+                        Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Label Content="{Binding GameTypeName}" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                        <ListView Grid.Row="1" ItemsSource="{Binding PlayerScores}">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding TeamId}" Value="0">
+                                            <Setter Property="Background" Value="Red"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TeamId}" Value="1">
+                                            <Setter Property="Background" Value="Blue"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding TeamId}" Value="-1">
+                                            <Setter Property="Background" Value="White"/>
+                                            <Setter Property="Foreground" Value="Black"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Gamertag" Width="200">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding GamerTag}" FontSize="18" Padding="8,4"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Score" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Score}" FontSize="18" Padding="8,4"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Kills" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Kills}" FontSize="18" Padding="8,4"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Assists" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Assists}" FontSize="18" Padding="8,4"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Deaths" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Deaths}" FontSize="18" Padding="8,4"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
+    </Grid>
+</Window>
