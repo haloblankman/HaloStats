@@ -1,5 +1,5 @@
 ﻿using HaloStats.Client.Framework;
-using HaloStats.Domain.Entities;
+using HaloStats.Client.ViewModels;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
@@ -49,24 +49,67 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 Games.Remove(duplicateGame);
             }
 
-            var game = new Game
-            {
-                GameUniqueId = report.GameUniqueId.Value,
-                GameTypeName = report.GameTypeName.Value,
-                PlayerScores = report.Players.Select(p => new PlayerScore
-                {
-                    TeamId = p.mTeamId,
-                    GamerTag = p.mGamertagText,
-                    Kills = p.mKills,
-                    Assists = p.mAssists,
-                    Deaths = p.mDeaths,
-                    Score = p.Score
-                }).ToList()
-            };
-
+            var game = MapGame(report);
             Games.Add(game);
             SelectedGameIndex = Games.Count - 1; // Select the last tab
         });
+    }
+
+    private Game MapGame(MultiplayerCarnageReport report)
+    {
+        var redTeamScore = report.Players.Where(p => p.mTeamId == 0).Sum(p => p.Score);
+        var blueTeamScore = report.Players.Where(p => p.mTeamId == 1).Sum(p => p.Score);
+        var isRedTeamVictory = redTeamScore > blueTeamScore;
+        // Map to PlayerScore list first
+        var playerScores = report.Players.Select(p => new PlayerScore
+        {
+            TeamId = p.mTeamId,
+            GamerTag = p.mGamertagText,
+            Kills = p.mKills,
+            Assists = p.mAssists,
+            Deaths = p.mDeaths,
+            Score = p.Score
+        }).ToList();
+
+        // Calculate max/min values
+        var maxScore = playerScores.Max(ps => ps.Score);
+        var maxAssists = playerScores.Max(ps => ps.Assists);
+        var minDeaths = playerScores.Min(ps => ps.Deaths);
+        var maxKills = playerScores.Max(ps => ps.Kills);
+
+        // Set the flags
+        foreach (var ps in playerScores)
+        {
+            ps.HasHighestScore = ps.Score == maxScore;
+            ps.HasHighestAssists = ps.Assists == maxAssists;
+            ps.HasLowestDeaths = ps.Deaths == minDeaths;
+            ps.HasHighestKills = ps.Kills == maxKills;
+        }
+
+        // Order by score descending and assign ranks (handling ties)
+        var ordered = playerScores
+            .OrderByDescending(ps => ps.Score)
+            .ThenByDescending(ps => ps.Kills + ps.Assists - ps.Deaths) // Secondary sort by K-D difference
+            .ToList();
+
+        for (int i = 0; i < ordered.Count; i++)
+        {
+            var ps = ordered[i];
+            ps.Place = i+1;
+        }
+
+        // Now assign the ranks back to the original list (if needed)
+        var game = new Game
+        {
+            GameUniqueId = report.GameUniqueId.Value,
+            GameTypeName = report.GameTypeName.Value,
+            RedTeamScore = redTeamScore,
+            BlueTeamScore = blueTeamScore,
+            IsRedTeamVictory = isRedTeamVictory,
+            PlayerScores = playerScores
+        };
+
+        return game;
     }
 
     private void CloseTab(Game? game)
