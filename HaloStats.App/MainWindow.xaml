@@ -75,6 +75,14 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#0D2B63"/>
+                    <!-- Change to your desired color -->
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="BorderBrush" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
         <Style TargetType="TabControl">
             <Setter Property="BorderBrush" Value="Transparent"/>
