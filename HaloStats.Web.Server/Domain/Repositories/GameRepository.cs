@@ -21,7 +21,10 @@ public class GameRepository : IGameRepository
 
     public async Task<Game?> GetGameByGameUniqueId(Guid gameUniqueId)
     {
-        return await db.Games.Where(g => g.GameUniqueId == gameUniqueId).FirstOrDefaultAsync();
+        return await db.Games
+            .Where(g => g.GameUniqueId == gameUniqueId)
+            .Include(g => g.Players)
+            .FirstOrDefaultAsync();
     }
 
     public async Task AddGame(Game game)

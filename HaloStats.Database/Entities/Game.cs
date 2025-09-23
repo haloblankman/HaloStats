@@ -22,7 +22,7 @@ public class Game
     public Game()
     {
         GameId = Uuid.NewDatabaseFriendly(UUIDNext.Database.PostgreSql);
-        ReportedAt = DateTime.Now;
+        ReportedAt = DateTime.UtcNow;
         IsDuplicateGame = false;
     }
 

@@ -12,4 +12,8 @@
     <PackageReference Include="MudBlazor" Version="8.12.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\HaloStats.Web.Shared\HaloStats.Web.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

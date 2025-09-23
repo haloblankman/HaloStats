@@ -1,7 +1,10 @@
-﻿using HaloStats.Client.Framework;
+﻿using HaloStats.Client.Domain.Mappers;
+using HaloStats.Client.Framework;
 using HaloStats.Client.ViewModels;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Configuration;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Input;
 
@@ -39,8 +42,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _fileWatcher.WatchFolder();
     }
 
-    private void OnReportParsed(MultiplayerCarnageReport report)
+    private async void OnReportParsed(MultiplayerCarnageReport report)
     {
+        await PostCarnageReportAsync(report);
+
         Dispatcher.Invoke(() =>
         {
             var duplicateGame = Games.FirstOrDefault(g => g.GameUniqueId == report.GameUniqueId.Value);
@@ -53,6 +58,33 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Games.Add(game);
             SelectedGameIndex = Games.Count - 1; // Select the last tab
         });
+    }
+
+    private async Task PostCarnageReportAsync(MultiplayerCarnageReport report)
+    {
+        using var httpClient = new HttpClient();
+        string apiUrl = ConfigurationManager.AppSettings["ApiUrl"]!;
+
+        var request = MultiplayerCarnageReportMapper.MapToPostRequest(report);
+        var json = System.Text.Json.JsonSerializer.Serialize(request);
+        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+        const int maxAttempts = 3;
+        const int delayMilliseconds = 5000;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                var response = await httpClient.PostAsync(apiUrl, content);
+                response.EnsureSuccessStatusCode();
+                return; // Success, exit the method
+            }
+            catch (Exception ex) when (attempt < maxAttempts)
+            {
+                await Task.Delay(delayMilliseconds);
+            }
+        }
     }
 
     private Game MapGame(MultiplayerCarnageReport report)
