@@ -19,16 +19,6 @@ public class GetDashboardService : IGetDashboardService
 
     public async Task<DashboardResponse> GetDashboard()
     {
-        var topPlayersByKillCount = await gameAnalyticsRepo.GetTopPlayersByKillCount();
-        var topPlayersByKillCountThisMonth = await gameAnalyticsRepo.GetTopPlayersByKillCountThisMonth();
-        var topTeammatePairs = await gameAnalyticsRepo.GetTopTeammatePairs();
-        var topTeammatePairsByWins = await gameAnalyticsRepo.GetTopTeammatePairsByWins();
-        return new DashboardResponse
-        {
-            TopPlayersByKillCount = topPlayersByKillCount,
-            TopPlayersByKillCountThisMonth = topPlayersByKillCountThisMonth,
-            TopTeammatePairs = topTeammatePairs,
-            TopTeammatePairsByWins = topTeammatePairsByWins
-        };
+        return new DashboardResponse();
     }
 }

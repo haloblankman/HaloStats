@@ -20,7 +20,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    //app.UseWebAssemblyDebugging();
+    app.UseWebAssemblyDebugging();
 }
 else
 {
@@ -28,6 +28,20 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An unhandled exception occurred while processing the request.");
+        throw;
+    }
+});
 
 app.UseHttpsRedirection();
 

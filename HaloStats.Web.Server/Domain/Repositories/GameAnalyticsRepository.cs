@@ -1,15 +1,19 @@
 ﻿using HaloStats.Database;
-using HaloStats.Web.Shared.Contracts.Dashboard;
+using HaloStats.Database.Entities;
+using HaloStats.Database.Enums;
+using HaloStats.Web.Server.Domain.Mappers;
+using HaloStats.Web.Shared.Contracts.Shared;
+using HaloStats.Web.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace HaloStats.Web.Server.Domain.Repositories;
 
 public interface IGameAnalyticsRepository
 {
-    Task<TopPlayersByKillCount> GetTopPlayersByKillCount();
-    Task<TopPlayersByKillCount> GetTopPlayersByKillCountThisMonth();
-    Task<TopTeammatePairs> GetTopTeammatePairs();
-    Task<TopTeammatePairs> GetTopTeammatePairsByWins();
+    Task<TopPlayersByKillCount> GetTopPlayersByKillCount(HaloGames game);
+    Task<TopPlayersByKillCount> GetTopPlayersByKillCountThisMonth(HaloGames game);
+    Task<TopTeammatePairs> GetTopTeammatePairs(HaloGames game);
+    Task<TopTeammatePairs> GetTopTeammatePairsByWins(HaloGames game);
 
 }
 
@@ -21,10 +25,11 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
         this.db = db;
     }
 
-    public async Task<TopPlayersByKillCount> GetTopPlayersByKillCount()
+    public async Task<TopPlayersByKillCount> GetTopPlayersByKillCount(HaloGames game)
     {
+        var gamesFilter = GetGameFilter(game);
         var players = await db.GamePlayers
-            .Join(db.Games.Where(g => !g.IsDuplicateGame),
+            .Join(gamesFilter,
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => gp)
@@ -59,12 +64,24 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
         return result;
     }
 
-    public async Task<TopPlayersByKillCount> GetTopPlayersByKillCountThisMonth()
+    private IQueryable<Game> GetGameFilter(HaloGames game)
+    {
+        var gamesFilter = db.Games.AsNoTracking().Where(g => !g.IsDuplicateGame);
+        if (game != HaloGames.HaloMccAll)
+        {
+            var gameEnum = game.MapToGameEnum();
+            gamesFilter = gamesFilter.Where(g => g.GameEnum == gameEnum);
+        }
+        return gamesFilter;
+    }
+
+    public async Task<TopPlayersByKillCount> GetTopPlayersByKillCountThisMonth(HaloGames game)
     {
         var oneMonthAgo = DateTime.UtcNow.AddMonths(-1);
+        var gameFilter = GetGameFilter(game);
 
         var players = await db.GamePlayers
-            .Join(db.Games.Where(g => !g.IsDuplicateGame && g.ReportedAt >= oneMonthAgo),
+            .Join(gameFilter.Where(g => g.ReportedAt >= oneMonthAgo),
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => gp)
@@ -99,12 +116,13 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
         return result;
     }
 
-    public async Task<TopTeammatePairs> GetTopTeammatePairs()
+    public async Task<TopTeammatePairs> GetTopTeammatePairs(HaloGames game)
     {
+        var gamesFilter = GetGameFilter(game);
         var gamePlayers = await db.GamePlayers
         .AsNoTracking()
         .Join(
-            db.Games.AsNoTracking().Where(g => !g.IsDuplicateGame && g.IsTeamsEnabled),
+            gamesFilter.Where(g => g.IsTeamsEnabled),
             gp => gp.GameId,
             g => g.GameId,
             (gp, g) => new { gp.GameId, gp.GamerTag, gp.TeamId, gp.IsWinner }
@@ -222,7 +240,7 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
         };
     }
 
-    public async Task<TopTeammatePairs> GetTopTeammatePairsByWins()
+    public async Task<TopTeammatePairs> GetTopTeammatePairsByWins(HaloGames game)
     {
         //var teammatePairs = await db.GamePlayers
         //    .Join(db.Games.Where(g => !g.IsDuplicateGame && g.IsTeamsEnabled),
@@ -271,10 +289,12 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
         //    .ToList();
 
         // Step 1: Fetch only the necessary data from the database
+
+        var gamesFilter = GetGameFilter(game);
         var gamePlayers = await db.GamePlayers
             .AsNoTracking()
             .Join(
-                db.Games.AsNoTracking().Where(g => !g.IsDuplicateGame && g.IsTeamsEnabled),
+                gamesFilter.Where(g => g.IsTeamsEnabled),
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => new { gp.GameId, gp.GamerTag, gp.TeamId, gp.IsWinner }

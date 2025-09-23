@@ -1,4 +1,5 @@
 ﻿using HaloStats.Database.Entities;
+using HaloStats.Database.Enums;
 using HaloStats.Web.Shared.Contracts.CarnageReport;
 
 namespace HaloStats.Web.Server.Domain.Mappers;
@@ -19,7 +20,7 @@ public static class PostCarnageReportRequestMapper
             HopperName = request.HopperName,
             PartySize = request.PartySize,
             HasNetworkMembersInParty = request.HasNetworkMembersInParty,
-            GameEnum = request.GameEnum,
+            GameEnum = (GameEnum)request.GameEnum,
             Players = request.Players?.Select(p => new GamePlayer
             {
                 XboxUserId = p.XboxUserId,

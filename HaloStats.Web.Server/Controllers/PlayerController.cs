@@ -29,9 +29,9 @@ namespace HaloStats.Web.Server.Controllers
         }
 
         [HttpGet("{gamertag}/games")]
-        public async Task<IActionResult> GamesPlayed(string gamertag, int pageNumber = 1)
+        public async Task<IActionResult> GamesPlayed(string gamertag, int pageNumber = 1, int pageSize = 100)
         {
-            var gamesPlayed = await getPlayerGameHistory.GetGamesPlayed(gamertag, pageNumber, 100);
+            var gamesPlayed = await getPlayerGameHistory.GetGamesPlayed(gamertag, pageNumber, pageSize);
             return Ok(gamesPlayed);
         }
     }

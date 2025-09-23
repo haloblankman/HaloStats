@@ -1,4 +1,4 @@
-﻿namespace HaloStats.Web.Shared.Contracts.Dashboard;
+﻿namespace HaloStats.Web.Shared.Contracts.Shared;
 
 public class TopTeammatePairs
 {

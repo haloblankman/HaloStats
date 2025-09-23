@@ -1,0 +1,176 @@
+﻿@page "/leaderboard/{game}"
+@using HaloStats.Web.Shared.Contracts.Leaderboard
+@using HaloStats.Web.Shared.Enums
+
+@inject HttpClient Http
+
+<MudText Typo="Typo.h1">Halo Post Carnage Reports</MudText>
+<MudDivider />
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (errorMessage is not null)
+{
+    <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+}
+else if (leaderboard is not null)
+{
+    <MudText Typo="Typo.h4">Top 10 Kill Leaders (All Time)</MudText>
+    <MudTable Items="leaderboard.TopPlayersByKillCount.Players" Dense="true">
+        <HeaderContent>
+            <MudTh>Rank</MudTh>
+            <MudTh>GamerTag</MudTh>
+            <MudTh>Kills</MudTh>
+            <MudTh>KDR</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Rank">@context.Rank</MudTd>
+            <MudTd DataLabel="GamerTag">
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")">
+                    @context.GamerTag
+                </MudLink>
+            </MudTd>
+            <MudTd DataLabel="Kills">@context.Kills</MudTd>
+            <MudTd DataLabel="KDR">@context.KillDeathRatio.ToString("0.00")</MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudText Typo="Typo.h4" Class="mt-6">Top 10 Kill Leaders (This Month)</MudText>
+    <MudTable Items="leaderboard.TopPlayersByKillCountThisMonth.Players" Dense="true">
+        <HeaderContent>
+            <MudTh>Rank</MudTh>
+            <MudTh>GamerTag</MudTh>
+            <MudTh>Kills</MudTh>
+            <MudTh>KDR</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Rank">@context.Rank</MudTd>
+            <MudTd DataLabel="GamerTag">
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")">
+                    @context.GamerTag
+                </MudLink>
+            </MudTd>
+            <MudTd DataLabel="Kills">@context.Kills</MudTd>
+            <MudTd DataLabel="KDR">@context.KillDeathRatio.ToString("0.00")</MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudText Typo="Typo.h4" Class="mt-6">Top Teammate Pairs (Games Played Together)</MudText>
+    <MudTable Items="leaderboard.TopTeammatePairs.Pairs" Dense="true">
+        <HeaderContent>
+            <MudTh>Rank</MudTh>
+            <MudTh>Player 1</MudTh>
+            <MudTh>Player 2</MudTh>
+            <MudTh>Games Played</MudTh>
+            <MudTh>Wins</MudTh>
+            <MudTh>Losses</MudTh>
+            <MudTh>Win Rate</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Rank">@context.Rank</MudTd>
+            <MudTd DataLabel="Player 1">
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamerTag)}")">
+                    @context.PlayerOneGamerTag
+                </MudLink>
+            </MudTd>
+            <MudTd DataLabel="Player 2">
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamerTag)}")">
+                    @context.PlayerTwoGamerTag
+                </MudLink>
+            </MudTd>
+            <MudTd DataLabel="Games Played">@context.GamesPlayedTogether</MudTd>
+            <MudTd DataLabel="Wins">@context.WinsTogether</MudTd>
+            <MudTd DataLabel="Losses">@context.LossesTogether</MudTd>
+            <MudTd DataLabel="Win Rate">@context.WinRate.ToString("P1")</MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudText Typo="Typo.h4" Class="mt-6">Top Teammate Pairs (By Wins)</MudText>
+    <MudTable Items="leaderboard.TopTeammatePairsByWins.Pairs" Dense="true">
+        <HeaderContent>
+            <MudTh>Rank</MudTh>
+            <MudTh>Player 1</MudTh>
+            <MudTh>Player 2</MudTh>
+            <MudTh>Games Played</MudTh>
+            <MudTh>Wins</MudTh>
+            <MudTh>Losses</MudTh>
+            <MudTh>Win Rate</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Rank">@context.Rank</MudTd>
+            <MudTd DataLabel="Player 1">
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamerTag)}")">
+                    @context.PlayerOneGamerTag
+                </MudLink>
+            </MudTd>
+            <MudTd DataLabel="Player 2">
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamerTag)}")">
+                    @context.PlayerTwoGamerTag
+                </MudLink>
+            </MudTd>
+            <MudTd DataLabel="Games Played">@context.GamesPlayedTogether</MudTd>
+            <MudTd DataLabel="Wins">@context.WinsTogether</MudTd>
+            <MudTd DataLabel="Losses">@context.LossesTogether</MudTd>
+            <MudTd DataLabel="Win Rate">@context.WinRate.ToString("P1")</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    [Parameter]
+    public string? Game { get; set; }
+    private string GameDisplay { get; set; } = "Unknown";
+    private GetLeaderboardResponse leaderboard;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HaloGames gameToLoad;
+        var gameEnum = LeaderboardRouteMapper.MapRouteToGameEnum(Game);
+        if (gameEnum == null)
+        {
+            gameToLoad = HaloGames.HaloMccAll; // Default value
+        }
+        else
+        {
+            GameDisplay = LeaderboardRouteMapper.MapGameEnumToDescription(gameEnum.Value);
+            gameToLoad = gameEnum.Value;
+        }
+        await LoadLeaderboard(gameToLoad);
+        StateHasChanged();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        HaloGames gameToLoad;
+        var gameEnum = LeaderboardRouteMapper.MapRouteToGameEnum(Game);
+        if (gameEnum == null)
+        {
+            gameToLoad = HaloGames.HaloMccAll; // Default value
+        }
+        else
+        {
+            GameDisplay = LeaderboardRouteMapper.MapGameEnumToDescription(gameEnum.Value);
+            gameToLoad = gameEnum.Value;
+        }
+        await LoadLeaderboard(gameToLoad);
+        StateHasChanged();
+    }
+
+    private async Task LoadLeaderboard(HaloGames game)
+    {
+        try
+        {
+            leaderboard = await Http.GetFromJsonAsync<GetLeaderboardResponse>($"/api/leaderboard/{game}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load leaderboard data: {ex.Message}";
+        }
+        isLoading = false;
+    }
+}

@@ -1,4 +1,5 @@
-﻿using UUIDNext;
+﻿using HaloStats.Database.Enums;
+using UUIDNext;
 
 namespace HaloStats.Database.Entities;
 public class Game
@@ -14,7 +15,7 @@ public class Game
     public string? HopperName { get; set; }
     public required int PartySize { get; set; }
     public required bool HasNetworkMembersInParty { get; set; }
-    public required int GameEnum { get; set; }
+    public required GameEnum GameEnum { get; set; }
     public required string WhosReportingIp { get; set; }
     public DateTime ReportedAt { get; set; }
     public required List<GamePlayer> Players { get; set; }
@@ -76,7 +77,7 @@ public class Game
             .ToList();
         for (int i = 0; i < rankedPlayers.Count; i++)
         {
-            rankedPlayers[i].Standing = i + 1;
+            rankedPlayers[i].Place = i + 1;
         }
 
         if (IsTeamsEnabled)
