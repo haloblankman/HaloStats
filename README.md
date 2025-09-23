@@ -21,7 +21,7 @@ Enjoy tracking your carnage reports!
 ### Setup Instructions
 1. **Database Initialization**  
    - Install PostgreSQL.  
-   - Run the [start.sql](https://github.com/haloblankman/HaloStats/blob/develop/HaloStats.Database/sql/start.sql) script.  
+   - Run the [start.sql](HaloStats.Database/Sql/start.sql) script.  
      > ⚠️ Make sure to review the comments in `start.sql` before running it.
 
 2. **Entity Framework Migrations**  
