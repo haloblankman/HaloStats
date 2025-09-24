@@ -78,7 +78,9 @@ public class PlayerRepository : IPlayerRepository
                 Score = x.gp.Score,
                 Kills = x.gp.Kills,
                 Assists = x.gp.Assists,
-                Deaths = x.gp.Deaths
+                Deaths = x.gp.Deaths,
+                GameTypeName = x.g.GameTypeName,
+                IsMatchmaking = x.g.IsMatchmaking
             }).ToListAsync();
 
 

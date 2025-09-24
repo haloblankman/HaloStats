@@ -34,5 +34,11 @@ namespace HaloStats.Web.Server.Controllers
             var gamesPlayed = await getPlayerGameHistory.GetGamesPlayed(gamertag, pageNumber, pageSize);
             return Ok(gamesPlayed);
         }
+
+        //[HttpGet("search")]
+        //public async Task<IActionResult> SearchPlayers(string query)
+        //{
+
+        //}
     }
 }

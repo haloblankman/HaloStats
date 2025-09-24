@@ -21,26 +21,26 @@ public class PostCarnageReportService : IPostCarnageReportService
     public async Task<PostCarnageReportResponse> SavePostCarnageReport(PostCarnageReportRequest request, string ipAddress)
     {
         var game = PostCarnageReportRequestMapper.MapToGame(request, ipAddress);
-        var dupGame = await gameRepository.GetGameByGameUniqueId(request.GameUniqueId);
+        var dupGames = await gameRepository.GetGameByGameUniqueId(request.GameUniqueId);
         bool isDuplicate = false;
-        if (dupGame != null)
+        if (dupGames.Count() > 0)
         {
-            if (game.IsGameDuplicate(dupGame))
+            if (game.IsGameDuplicate(dupGames))
             {
                 return new PostCarnageReportResponse
                 {
                     IsDuplicate = true,
-                    GameId = dupGame.GameId
+                    GameId = dupGames.First().GameId
                 };
             }
 
-            if (game.IsLatestGame(dupGame))
+            if (game.IsLatestGame(dupGames))
             {
-                dupGame.IsDuplicate();
+                dupGames.ForEach(dg => dg.Duplicate());
             }
             else
             {
-                game.IsDuplicate();
+                game.Duplicate();
                 isDuplicate = true;
             }
         }

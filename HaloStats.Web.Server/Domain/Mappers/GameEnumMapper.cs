@@ -19,4 +19,22 @@ public static class GameEnumMapper
             _ => throw new ArgumentOutOfRangeException(nameof(game), game, null)
         };
     }
+
+    public static string MapTeamIdToName(int teamId)
+    {
+        return teamId switch
+        {
+            0 => "Red",
+            1 => "Blue",
+            2 => "Green",
+            3 => "Orange",
+            4 => "Brown",
+            5 => "White",
+            6 => "Pink",
+            7 => "Gold",
+            8 => "Gray",
+            9 => "Purple",
+            _ => "Unknown"
+        };
+    }
 }

@@ -46,20 +46,28 @@
         else
         {
             <MudText Typo="Typo.h6">Game History (Page @gamesPlayed?.PageNumber)</MudText>
-            <MudTable Items="gamesPlayed?.Games" Dense="true" Hover="true">
+            <MudTable Items="gamesPlayed?.Games">
                 <HeaderContent>
                     <MudTh>Date</MudTh>
+                    <MudTh>Game Type Name</MudTh>
                     <MudTh>Score</MudTh>
                     <MudTh>Kills</MudTh>
                     <MudTh>Assists</MudTh>
                     <MudTh>Deaths</MudTh>
+                    <MudTh>Is Matchmaking</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Date">@context.ReportedAt.ToString("g")</MudTd>
+                    <MudTd DataLabel="Game Type Name">
+                        <MudLink Href="@($"/game/{Uri.EscapeDataString(context.GameId.ToString())}")">
+                            @context.GameTypeName
+                        </MudLink>
+                    </MudTd>
                     <MudTd DataLabel="Score">@context.Score</MudTd>
                     <MudTd DataLabel="Kills">@context.Kills</MudTd>
                     <MudTd DataLabel="Assists">@context.Assists</MudTd>
                     <MudTd DataLabel="Deaths">@context.Deaths</MudTd>
+                    <MudTd DataLabel="Is Matchmaking">@context.IsMatchmaking</MudTd>
                 </RowTemplate>
             </MudTable>
             <MudStack Direction="Row" Spacing="2" Class="mt-2">

@@ -1,10 +1,211 @@
-﻿@page "/game"
+﻿@page "/game/{gameId:guid}"
+@using HaloStats.Web.Shared.Contracts.Game
+@using HaloStats.Web.Shared.Contracts.Shared
+@using MudBlazor
+@inject HttpClient Http
 
-<PageTitle>Halo PCRS</PageTitle>
+<PageTitle>Halo PCR</PageTitle>
 
+@if (isLoading)
+{
+    <MudPaper Class="pcr-loading d-flex flex-column justify-center align-center">
+        <MudProgressCircular Color="Color.Info" Indeterminate Size="MudBlazor.Size.Large" />
+        <div class="mt-4 mud-text-body1">Loading game report...</div>
+    </MudPaper>
+}
+else if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Elevation="6">
+        @errorMessage
+    </MudAlert>
+}
+else if (game is not null)
+{
+    <MudGrid Justify="Justify.SpaceAround">
+        <MudItem xs="6">
+            <MudText Typo="Typo.h6" Inline="false">@game.GameTypeName</MudText>
+            @foreach (var team in game.TeamScores)
+            {
+                <MudGrid Justify="Justify.SpaceEvenly">
+                    <MudItem xs="6">
+                        @team.TeamName
+                    </MudItem>
+                    <MudItem xs="6">
+                        @team.Score
+                    </MudItem>
+                </MudGrid>
+            }
+        </MudItem>
+        <MudItem xs="6">
+            <MudText Inline="false">Overview</MudText>
+            <MudPagination Color="Color.Primary" Count="3" @bind-Selected="@pcrPage" />
+        </MudItem>
+    </MudGrid>
 
-<h3>Game</h3>
+    <div class="stats-slider mt-2">
+        <div class="stats-slider-inner" style="@($"transform:translateX(-{(pcrPage - 1) * 100}%);")">
+            <!-- Table 1: Core Scoreboard -->
+            <div class="stats-panel">
+                <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle">
+                    <HeaderContent>
+                        <MudTh>GamerTag</MudTh>
+                        <MudTh>Score</MudTh>
+                        <MudTh>Kills</MudTh>
+                        <MudTh>Assists</MudTh>
+                        <MudTh>Deaths</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="GamerTag">@context.GamerTag</MudTd>
+                        <MudTd DataLabel="Score">@context.Score</MudTd>
+                        <MudTd DataLabel="Kills">@context.Kills</MudTd>
+                        <MudTd DataLabel="Assists">@context.Assists</MudTd>
+                        <MudTd DataLabel="Deaths">@context.Deaths</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </div>
+
+            <!-- Table 2: Kill Types -->
+            <div class="stats-panel">
+                <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle">
+                    <HeaderContent>
+                        <MudTh>GamerTag</MudTh>
+                        <MudTh>Weapon</MudTh>
+                        <MudTh>Grenade</MudTh>
+                        <MudTh>Melee</MudTh>
+                        <MudTh>Other</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="GamerTag">@context.GamerTag</MudTd>
+                        <MudTd DataLabel="WeaponKills">@context.WeaponKills</MudTd>
+                        <MudTd DataLabel="GrenadeKills">@context.GrenadeKills</MudTd>
+                        <MudTd DataLabel="MeleeKills">@context.MeleeKills</MudTd>
+                        <MudTd DataLabel="OtherKills">@context.OtherKills</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </div>
+
+            <!-- Table 3: Survivability / Other -->
+            <div class="stats-panel">
+                <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle">
+                    <HeaderContent>
+                        <MudTh>GamerTag</MudTh>
+                        <MudTh>AverageLife</MudTh>
+                        <MudTh>Spread</MudTh>
+                        <MudTh>Spree</MudTh>
+                        <MudTh>Medals</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="GamerTag">@context.GamerTag</MudTd>
+                        <MudTd DataLabel="AverageLife">@FormatAverageLife(context)</MudTd>
+                        <MudTd DataLabel="KillDeathSpread">@FormatKDSpread(context.KillDeathSpread)</MudTd>
+                        <MudTd DataLabel="Spree">@context.Spree</MudTd>
+                        <MudTd DataLabel="Medals">@context.Medals</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <MudAlert Severity="Severity.Info">No game data.</MudAlert>
+}
 
 @code {
+    [Parameter] public Guid? GameId { get; set; }
 
+    private bool isLoading = true;
+    private string? errorMessage;
+    private GetGameResponse? game;
+    private TeamScore? winningTeam;
+    private int pcrPage = 1;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (GameId.HasValue)
+        {
+            await LoadGame();
+        }
+    }
+
+    private async Task LoadGame()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            game = await Http.GetFromJsonAsync<GetGameResponse>($"/api/game/{GameId}");
+            if (game != null && game.IsTeamsEnabled && game.TeamScores is not null)
+            {
+                winningTeam = game.TeamScores.First(t => t.IsWinner);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load game data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string RowStyle(GamePlayerStats p, int i)
+    {
+        if (game?.IsTeamsEnabled == true)
+        {
+            // Team-based coloring
+            return p.TeamId switch
+            {
+                0 => "background:rgba(255,0,0,0.15);border-left:3px solid #ff2d2d;",
+                1 => "background:rgba(0,120,255,0.15);border-left:3px solid #2196f3;",
+                2 => "background:rgba(128,128,128,0.15);border-left:3px solid #9e9e9e;",
+                3 => "background:rgba(128,0,128,0.18);border-left:3px solid #ba68c8;",
+                _ => ""
+            };
+        }
+
+        // Non-team styling keeps first-place highlight
+        if (p.Place == 1)
+            return "background:linear-gradient(90deg,rgba(255,215,0,0.15),rgba(0,0,0,0));border-left:3px solid #ffd700;";
+        return p.Place % 2 == 0 ? "background-color:rgba(255,255,255,0.03);" : "";
+    }
+
+    private static string FormatSeconds(int seconds)
+        => TimeSpan.FromSeconds(seconds).ToString(@"m\:ss");
+
+    private static string FormatAverageLife(GamePlayerStats p)
+    {
+        var deaths = p.Deaths <= 0 ? 1 : p.Deaths;
+        var avg = p.SecondsAlive / deaths;
+        return FormatSeconds(avg);
+    }
+
+    private static string FormatKDSpread(int kdSpread)
+    {
+        return kdSpread >= 0 ? $"+{kdSpread}" : kdSpread.ToString();
+    }
 }
+<style>
+    .stats-slider {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .stats-slider-inner {
+        display: flex;
+        transition: transform .18s ease-out;
+        will-change: transform;
+    }
+
+    .stats-panel {
+        flex: 0 0 100%;
+        padding-right: 0.5rem;
+    }
+
+        .stats-panel .mud-table {
+            min-width: 100%;
+        }
+</style>

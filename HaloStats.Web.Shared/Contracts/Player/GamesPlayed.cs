@@ -12,8 +12,10 @@ public class GamePlayed
 {
     public required Guid GameId { get; set; }
     public required DateTime ReportedAt { get; set; }
-    public int Score { get; set; }
-    public int Kills { get; set; }
-    public int Assists { get; set; }
-    public int Deaths { get; set; }
+    public required string GameTypeName { get; set; }
+    public required int Score { get; set; }
+    public required int Kills { get; set; }
+    public required int Assists { get; set; }
+    public required int Deaths { get; set; }
+    public bool IsMatchmaking { get; set; }
 }

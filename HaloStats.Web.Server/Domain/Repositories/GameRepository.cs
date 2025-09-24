@@ -6,8 +6,9 @@ namespace HaloStats.Web.Server.Domain.Repositories;
 
 public interface IGameRepository
 {
-    Task<Game?> GetGameByGameUniqueId(Guid gameUniqueId);
+    Task<List<Game>> GetGameByGameUniqueId(Guid gameUniqueId);
     Task AddGame(Game game);
+    Task<Game?> GetGameById(Guid gameId);
 }
 
 public class GameRepository : IGameRepository
@@ -19,10 +20,18 @@ public class GameRepository : IGameRepository
         this.db = db;
     }
 
-    public async Task<Game?> GetGameByGameUniqueId(Guid gameUniqueId)
+    public async Task<List<Game>> GetGameByGameUniqueId(Guid gameUniqueId)
     {
         return await db.Games
             .Where(g => g.GameUniqueId == gameUniqueId)
+            .Include(g => g.Players)
+            .ToListAsync();
+    }
+
+    public async Task<Game?> GetGameById(Guid gameId)
+    {
+        return await db.Games
+            .Where(g => g.GameId == gameId)
             .Include(g => g.Players)
             .FirstOrDefaultAsync();
     }
@@ -32,4 +41,5 @@ public class GameRepository : IGameRepository
         db.Games.Add(game);
         await db.SaveChangesAsync();
     }
+
 }

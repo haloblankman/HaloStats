@@ -27,12 +27,17 @@ public class Game
         IsDuplicateGame = false;
     }
 
-    public void IsDuplicate()
+    public void Duplicate()
     {
         IsDuplicateGame = true;
     }
 
-    public bool IsGameDuplicate(Game previous)
+    public bool IsGameDuplicate(List<Game> previousGames)
+    {
+        return previousGames.Any(IsDuplicate);
+    }
+
+    private bool IsDuplicate(Game previous)
     {
         if (previous == null || previous.Players.Count != Players.Count)
             return false;
@@ -54,16 +59,22 @@ public class Game
         return true;
     }
 
-    public bool IsLatestGame(Game previous)
+    public bool IsLatestGame(List<Game> previousGames)
     {
-        if (previous == null)
+        if (previousGames == null || previousGames.Count == 0 || Players == null)
             return true;
 
         int thisTotal = Players.Sum(p => p.Kills + p.Deaths + p.Assists + p.Score);
-        int prevTotal = previous.Players.Sum(p => p.Kills + p.Deaths + p.Assists + p.Score);
+        int maxPrevTotal = previousGames
+            .Where(g => g.Players != null)
+            .Select(g => g.Players.Sum(p => p.Kills + p.Deaths + p.Assists + p.Score))
+            .DefaultIfEmpty(0)
+            .Max();
 
-        return thisTotal > prevTotal;
+        return thisTotal > maxPrevTotal;
     }
+
+    
 
     public void CalcualtePlayerStandings()
     {
