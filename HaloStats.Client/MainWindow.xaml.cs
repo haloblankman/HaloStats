@@ -19,6 +19,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private int _selectedGameIndex;
     public ObservableCollection<Game> Games { get; } = new();
     public ICommand CloseTabCommand { get; }
+    public ICommand DeleteGameCommand { get; }
 
     public int SelectedGameIndex
     {
@@ -38,6 +39,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         InitializeComponent();
         DataContext = this;
         CloseTabCommand = new RelayCommand<Game>(CloseTab);
+        DeleteGameCommand = new RelayCommand<Game>(async game => await DeleteGameAsync(game));
         _fileWatcher.ReportParsed += OnReportParsed;
         _fileWatcher.WatchFolder();
     }
@@ -59,12 +61,42 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             SelectedGameIndex = Games.Count - 1; // Select the last tab
         });
     }
+    private async Task DeleteGameAsync(Game? game)
+    {
+        if (game == null) return;
+
+        // Show confirmation dialog
+        var result = MessageBox.Show(
+            "Are you sure you want to delete this game?",
+            "Confirm Delete",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result != MessageBoxResult.Yes)
+            return; // User cancelled
+
+        string apiUrl = ConfigurationManager.AppSettings["ApiUrl"]!;
+        string deleteUrl = $"{apiUrl.TrimEnd('/')}/api/CarnageReport/{game.GameUniqueId}";
+
+        using var httpClient = new HttpClient();
+        try
+        {
+            var response = await httpClient.DeleteAsync(deleteUrl);
+            response.EnsureSuccessStatusCode();
+
+            Dispatcher.Invoke(() => CloseTab(game));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to delete game: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 
     private async Task PostCarnageReportAsync(MultiplayerCarnageReport report)
     {
         using var httpClient = new HttpClient();
         string apiUrl = ConfigurationManager.AppSettings["ApiUrl"]!;
-
+        string pcrUrl = $"{apiUrl.TrimEnd('/')}/api/CarnageReport";
         var request = MultiplayerCarnageReportMapper.MapToPostRequest(report);
         var json = System.Text.Json.JsonSerializer.Serialize(request);
         var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
@@ -76,7 +108,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             try
             {
-                var response = await httpClient.PostAsync(apiUrl, content);
+                var response = await httpClient.PostAsync(pcrUrl, content);
                 response.EnsureSuccessStatusCode();
                 return; // Success, exit the method
             }

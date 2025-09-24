@@ -7,6 +7,7 @@ public class Game
     public Guid GameId { get; set; }
     public required Guid GameUniqueId { get; set; }
     public bool IsDuplicateGame { get; set; }
+    public bool IsDeleted { get; set; }
     public required string GameTypeName { get; set; }
     public required bool IsMatchmaking { get; set; }
     public required bool LastMatchIncomplete { get; set; }
@@ -18,6 +19,8 @@ public class Game
     public required GameEnum GameEnum { get; set; }
     public required string WhosReportingIp { get; set; }
     public DateTime ReportedAt { get; set; }
+    public DateTime DeletedAt { get; set; }
+    public string DeletedByIp { get; set; }
     public required List<GamePlayer> Players { get; set; }
 
     public Game()
@@ -113,5 +116,12 @@ public class Game
             var winner = rankedPlayers.First();
             winner.IsWinner = true;
         }
+    }
+
+    public void Delete(string ipAddress)
+    {
+        IsDeleted = true;
+        DeletedAt = DateTime.UtcNow;
+        DeletedByIp = ipAddress;
     }
 }

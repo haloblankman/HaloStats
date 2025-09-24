@@ -40,6 +40,7 @@ public class GameRepository : IGameRepository
     public async Task<List<Game>> GetRecentGames(int count) 
     {         
         return await db.Games
+            .Where(g => !g.IsDuplicateGame && !g.IsDeleted)
             .OrderByDescending(g => g.ReportedAt)
             .Take(count)
             .Include(g => g.Players)
@@ -48,6 +49,6 @@ public class GameRepository : IGameRepository
 
     public async Task<int> TotalAmountOfGames()
     {
-        return await db.Games.Where(g => !g.IsDuplicateGame).CountAsync();
+        return await db.Games.Where(g => !g.IsDuplicateGame && !g.IsDeleted).CountAsync();
     }
 }

@@ -21,7 +21,7 @@ public class PlayerRepository : IPlayerRepository
     public async Task<PlayerSummary> GetPlayerSummary(string gamerTag)
     {
         var summary = await db.GamePlayers
-            .Join(db.Games.Where(g => !g.IsDuplicateGame),
+            .Join(db.Games.Where(g => !g.IsDuplicateGame && !g.IsDeleted),
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => gp)
@@ -63,7 +63,7 @@ public class PlayerRepository : IPlayerRepository
     public async Task<GamesPlayed> GetPlayerGameHistory(string gamerTag, int pageNumber, int pageSize)
     {
         var gamesPlayed = await db.GamePlayers
-            .Join(db.Games.Where(g => !g.IsDuplicateGame),
+            .Join(db.Games.Where(g => !g.IsDuplicateGame && !g.IsDeleted),
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => new { gp, g })

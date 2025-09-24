@@ -8,6 +8,7 @@ namespace HaloStats.Web.Server.Domain.Services;
 public interface IPostCarnageReportService
 {
     Task<PostCarnageReportResponse> SavePostCarnageReport(PostCarnageReportRequest request, string ipAddress);
+    Task DeleteCarnageReport(Guid gameUniqueId, string ipAddress);
 }
 
 public class PostCarnageReportService : IPostCarnageReportService
@@ -24,6 +25,20 @@ public class PostCarnageReportService : IPostCarnageReportService
         this.gameRepository = gameRepository;
         this.gamerTagRepository = gamerTagRepository;
         this.db = db;
+    }
+
+    public async Task DeleteCarnageReport(Guid gameUniqueId, string ipAddress)
+    {
+        var games = await gameRepository.GetGameByGameUniqueId(gameUniqueId);
+        if (games.Count == 0)
+        {
+            return;
+        }
+        foreach (var game in games)
+        {
+            game.Delete(ipAddress);
+        }
+        await db.SaveChangesAsync();
     }
 
     public async Task<PostCarnageReportResponse> SavePostCarnageReport(PostCarnageReportRequest request, string ipAddress)

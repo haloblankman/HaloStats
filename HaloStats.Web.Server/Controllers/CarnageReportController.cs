@@ -15,11 +15,19 @@ public class CarnageReportController : ControllerBase
         this.postCarnageReportService = postCarnageReportService;
     }
 
-
     [HttpPost]
     public async Task<PostCarnageReportResponse> PostCarnageReport([FromBody] PostCarnageReportRequest request)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
         return await postCarnageReportService.SavePostCarnageReport(request, ip ?? "unknown");
+    }
+
+    [HttpDelete]
+    [Route("{gameUniqueId}")]
+    public async Task<IActionResult> DeleteCarnageReport([FromRoute] Guid gameUniqueId)
+    {
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+        await postCarnageReportService.DeleteCarnageReport(gameUniqueId, ip ?? "unknown");
+        return NoContent();
     }
 }
