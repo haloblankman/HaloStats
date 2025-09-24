@@ -46,8 +46,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private async void OnReportParsed(MultiplayerCarnageReport report)
     {
-        await PostCarnageReportAsync(report);
-
         Dispatcher.Invoke(() =>
         {
             var duplicateGame = Games.FirstOrDefault(g => g.GameUniqueId == report.GameUniqueId.Value);
@@ -60,6 +58,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Games.Add(game);
             SelectedGameIndex = Games.Count - 1; // Select the last tab
         });
+
+        await PostCarnageReportAsync(report);
     }
     private async Task DeleteGameAsync(Game? game)
     {
@@ -115,6 +115,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             catch (Exception ex) when (attempt < maxAttempts)
             {
                 await Task.Delay(delayMilliseconds);
+            }
+            catch
+            {
             }
         }
     }

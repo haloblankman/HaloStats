@@ -15,7 +15,7 @@ public class CarnageReportController : ControllerBase
         this.postCarnageReportService = postCarnageReportService;
     }
 
-    [HttpPost]
+    [HttpPost()]
     public async Task<PostCarnageReportResponse> PostCarnageReport([FromBody] PostCarnageReportRequest request)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString();

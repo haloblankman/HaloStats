@@ -19,8 +19,8 @@ public class Game
     public required GameEnum GameEnum { get; set; }
     public required string WhosReportingIp { get; set; }
     public DateTime ReportedAt { get; set; }
-    public DateTime DeletedAt { get; set; }
-    public string DeletedByIp { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedByIp { get; set; }
     public required List<GamePlayer> Players { get; set; }
 
     public Game()
@@ -28,6 +28,7 @@ public class Game
         GameId = Uuid.NewDatabaseFriendly(UUIDNext.Database.PostgreSql);
         ReportedAt = DateTime.UtcNow;
         IsDuplicateGame = false;
+        IsDeleted = false;
     }
 
     public void Duplicate()
