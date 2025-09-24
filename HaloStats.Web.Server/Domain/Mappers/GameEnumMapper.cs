@@ -20,6 +20,21 @@ public static class GameEnumMapper
         };
     }
 
+    public static HaloGames MapToHaloGames(this GameEnum gameEnum)
+    {
+        return gameEnum switch
+        {
+            GameEnum.HaloCe => HaloGames.HaloCe,
+            GameEnum.Halo2 => HaloGames.Halo2,
+            GameEnum.Halo2Anniversary => HaloGames.Halo2Anniversary,
+            GameEnum.Halo3 => HaloGames.Halo3,
+            GameEnum.Halo3Odst => HaloGames.Halo3Odst,
+            GameEnum.Halo4 => HaloGames.Halo4,
+            GameEnum.HaloReach => HaloGames.HaloReach,
+            _ => HaloGames.HaloMccAll
+        };
+    }
+
     public static string MapTeamIdToName(int teamId)
     {
         return teamId switch

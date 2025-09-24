@@ -1,4 +1,5 @@
-﻿using HaloStats.Web.Server.Domain.Repositories;
+﻿using HaloStats.Web.Server.Domain.Mappers;
+using HaloStats.Web.Server.Domain.Repositories;
 using HaloStats.Web.Shared.Contracts.Dashboard;
 
 namespace HaloStats.Web.Server.Domain.Services;
@@ -10,15 +11,18 @@ public interface IGetDashboardService
 
 public class GetDashboardService : IGetDashboardService
 {
-    private readonly IGameAnalyticsRepository gameAnalyticsRepo;
+    private readonly IGameRepository gameRepo;
 
-    public GetDashboardService(IGameAnalyticsRepository gameAnalyticsRepo)
+    public GetDashboardService(IGameRepository gameRepo)
     {
-        this.gameAnalyticsRepo = gameAnalyticsRepo;
+        this.gameRepo = gameRepo;
     }
 
     public async Task<DashboardResponse> GetDashboard()
     {
-        return new DashboardResponse();
+        var recentGames = await gameRepo.GetRecentGames(50);
+        var totalAmountOfGames = await gameRepo.TotalAmountOfGames();
+        var response = DashboardMapper.MapToDashboardResponse(recentGames, totalAmountOfGames);
+        return response;
     }
 }

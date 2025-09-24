@@ -35,6 +35,9 @@ public class HaloStatsDbContext : DbContext
         modelBuilder.Entity<Game>()
             .HasIndex(g => g.GameUniqueId);
 
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => g.ReportedAt);
+
         modelBuilder.Entity<GamePlayer>()
             .HasIndex(gp => gp.GamerTag);
 

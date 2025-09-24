@@ -8,6 +8,8 @@ public interface IGameRepository
 {
     Task<List<Game>> GetGameByGameUniqueId(Guid gameUniqueId);
     Task<Game?> GetGameById(Guid gameId);
+    Task<List<Game>> GetRecentGames(int count);
+    Task<int> TotalAmountOfGames();
 }
 
 public class GameRepository : IGameRepository
@@ -35,4 +37,17 @@ public class GameRepository : IGameRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<List<Game>> GetRecentGames(int count) 
+    {         
+        return await db.Games
+            .OrderByDescending(g => g.ReportedAt)
+            .Take(count)
+            .Include(g => g.Players)
+            .ToListAsync();
+    }
+
+    public async Task<int> TotalAmountOfGames()
+    {
+        return await db.Games.Where(g => !g.IsDuplicateGame).CountAsync();
+    }
 }

@@ -1,7 +1,148 @@
 ﻿@page "/"
 
 @using HaloStats.Web.Shared.Contracts.Dashboard
+@using HaloStats.Web.Shared.Enums
 @inject HttpClient Http
 
 <PageTitle>Halo PCRS</PageTitle>
 
+<MudPaper Elevation="4" Class="pa-6 mb-6">
+    <MudText Typo="Typo.h3" GutterBottom="true">Welcome to Halo PCRS</MudText>
+    <MudText Typo="Typo.body1" GutterBottom="true">
+        This website lets you view your past Halo games online.
+        <br />
+        <b>How does it work?</b> Download and run the Windows application from
+        <MudLink Href="https://github.com/haloblankman/HaloStats/releases" Target="_blank">here</MudLink>.
+        The app must be running to capture your games. Once captured, your game history will appear here for you to browse and analyze.
+    </MudText>
+    <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Elevation="0" Dense="true" Class="mt-2">
+        <MudText Typo="Typo.body2">
+            <b>Note:</b> The Windows application must be running while you play to record your games.
+        </MudText>
+    </MudAlert>
+</MudPaper>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center">
+            <MudText Typo="Typo.h5" GutterBottom="true">Total Games Recorded</MudText>
+            @if (dashboard == null)
+            {
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            }
+            else
+            {
+                <MudText Typo="Typo.h2" Color="Color.Primary">@dashboard.TotalGames</MudText>
+            }
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h5" GutterBottom="true">Recent Games</MudText>
+            @if (dashboard == null)
+            {
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            }
+            else if (dashboard.RecentGames == null || !dashboard.RecentGames.Any())
+            {
+                <MudText>No recent games found.</MudText>
+            }
+            else
+            {
+                <MudTable Items="dashboard.RecentGames" Dense="true">
+                    <HeaderContent>
+                        <MudTh>Game</MudTh>
+                        <MudTh>Game Type</MudTh>
+                        <MudTh>Players</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Game">
+                            <MudLink Href="@($"/game/{context.GameId}")">@context.GameTypeName</MudLink>
+                        </MudTd>
+                        <MudTd DataLabel="Game Type">@context.GameType</MudTd>
+                        <MudTd DataLabel="Players">
+                            @FormatPlayersColumn(context)
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private DashboardResponse? dashboard;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dashboard = await Http.GetFromJsonAsync<DashboardResponse>("/api/dashboard");
+    }
+
+    private RenderFragment FormatPlayersColumn(RecentGame game) => builder =>
+    {
+        if (game.IsTeamGame)
+        {
+            // Sort teams by score descending (winner first)
+            var teams = game.Teams!.OrderByDescending(t => t.Score).ToList();
+            for (int i = 0; i < teams.Count; i++)
+            {
+                var team = teams[i];
+                var teamColor = ((HaloTeamColors)team.TeamId).ToString();
+                builder.OpenElement(0, "span");
+                builder.AddContent(1, $"{teamColor} Team: ");
+                builder.AddContent(2, $" ({team.Score})");
+                builder.CloseElement();
+
+                for (int j = 0; j < team.GamerTags.Count; j++)
+                {
+                    var gamerTag = team.GamerTags[j];
+                    builder.OpenComponent<MudLink>(3);
+                    builder.AddAttribute(4, "Href", $"/player?gamertag={Uri.EscapeDataString(gamerTag)}");
+                    builder.AddAttribute(5, "ChildContent", (RenderFragment)(childBuilder =>
+                    {
+                        childBuilder.AddContent(6, gamerTag);
+                    }));
+                    builder.CloseComponent();
+
+                    if (j < team.GamerTags.Count - 1)
+                        builder.AddContent(7, ", ");
+                }
+                
+                if (i < teams.Count - 1)
+                {
+                    builder.OpenElement(8, "br");
+                    builder.CloseElement();
+                }
+            }
+        }
+        else
+        {
+            var gamerTags = game.NonTeamGame!.GamerTags.ToList();
+            for (int i = 0; i < gamerTags.Count; i++)
+            {
+                var gamerTag = gamerTags[i];
+                bool isWinner = string.Equals(gamerTag, game.NonTeamGame.WinnerGamerTag, StringComparison.OrdinalIgnoreCase);
+
+                if (isWinner)
+                    builder.OpenElement(8, "b");
+
+                builder.OpenComponent<MudLink>(9);
+                builder.AddAttribute(10, "Href", $"/player?gamertag={Uri.EscapeDataString(gamerTag)}");
+                builder.AddAttribute(11, "ChildContent", (RenderFragment)(childBuilder =>
+                {
+                    childBuilder.AddContent(12, gamerTag);
+                }));
+                builder.CloseComponent();
+
+                if (isWinner)
+                {
+                    builder.AddContent(13, $" ({game.NonTeamGame.Score})");
+                    builder.CloseElement();
+                }
+
+                if (i < gamerTags.Count - 1)
+                    builder.AddContent(14, ", ");
+            }
+        }
+    };
+}
