@@ -54,7 +54,7 @@ public class PlayerRepository : IPlayerRepository
             TotalKills = summary?.TotalKills ?? 0,
             TotalAssists = summary?.TotalAssists ?? 0,
             TotalDeaths = summary?.TotalDeaths ?? 0,
-            WinPercentage = Math.Round(winPercentage * 100, 2),
+            WinPercentage = Math.Round(winPercentage, 2),
             KillDeathRatio = Math.Round(killDeathRatio, 2),
             KillAssistDeathRatio = Math.Round(kadRatio, 2)
         };

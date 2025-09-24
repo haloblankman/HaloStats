@@ -18,4 +18,8 @@ public class GamePlayerStats
     public required int Spree { get; set; }
     public required int Medals { get; set; }
     public required int TeamId { get; set; }
+    public required bool IsHighestKills { get; set; }
+    public required bool IsHighestAssists { get; set; }
+    public required bool IsLowestDeaths { get; set; }
+    public required bool IsHighestScore { get; set; }
 }

@@ -8,6 +8,12 @@ public static class GameMapper
 {
     public static GetGameResponse MapToGetGameResponse(Game game)
     {
+        // Find max/min values
+        var maxKills = game.Players.Max(p => p.Kills);
+        var maxAssists = game.Players.Max(p => p.Assists);
+        var maxScore = game.Players.Max(p => p.Score);
+        var minDeaths = game.Players.Min(p => p.Deaths);
+
         var response = new GetGameResponse
         {
             GameId = game.GameId,
@@ -32,6 +38,10 @@ public static class GameMapper
                 Spree = p.MostKillsInARow,
                 WeaponKills = p.KillsWeapon,
                 TeamId = p.TeamId,
+                IsHighestKills = p.Kills == maxKills,
+                IsHighestAssists = p.Assists == maxAssists,
+                IsHighestScore = p.Score == maxScore,
+                IsLowestDeaths = p.Deaths == minDeaths,
             }).ToList(),
         };
 

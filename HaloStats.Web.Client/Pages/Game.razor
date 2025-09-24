@@ -23,22 +23,37 @@ else if (game is not null)
 {
     <MudGrid Justify="Justify.SpaceAround">
         <MudItem xs="6">
-            <MudText Typo="Typo.h6" Inline="false">@game.GameTypeName</MudText>
+            <MudText Typo="Typo.h4" Inline="false">@game.GameTypeName</MudText>
             @foreach (var team in game.TeamScores)
             {
                 <MudGrid Justify="Justify.SpaceEvenly">
                     <MudItem xs="6">
-                        @team.TeamName
+                        <MudText Typo="Typo.h5" Style="@TeamTextColor(team.TeamId)">@team.TeamName</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        @team.Score
+                        <MudText Typo="Typo.h5" Style="@TeamTextColor(team.TeamId)">@team.Score</MudText>
                     </MudItem>
                 </MudGrid>
             }
         </MudItem>
-        <MudItem xs="6">
-            <MudText Inline="false">Overview</MudText>
-            <MudPagination Color="Color.Primary" Count="3" @bind-Selected="@pcrPage" />
+        <MudItem xs="6" style="display: flex; flex-direction: column; justify-content: flex-end;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <MudText Typo="Typo.h5" Class="pcr-section-title" Inline="false">
+                    @if (pcrPage == 1)
+                    {
+                        @:Overview
+                    }
+                    else if (pcrPage == 2)
+                    {
+                        @:Weapon Type Stats
+                    }
+                    else if (pcrPage == 3)
+                    {
+                        @:Advanced Stats
+                    }
+                </MudText>
+                <MudPagination Color="Color.Primary" Count="3" @bind-Selected="@pcrPage" />
+            </div>
         </MudItem>
     </MudGrid>
 
@@ -55,11 +70,31 @@ else if (game is not null)
                         <MudTh>Deaths</MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="GamerTag">@context.GamerTag</MudTd>
-                        <MudTd DataLabel="Score">@context.Score</MudTd>
-                        <MudTd DataLabel="Kills">@context.Kills</MudTd>
-                        <MudTd DataLabel="Assists">@context.Assists</MudTd>
-                        <MudTd DataLabel="Deaths">@context.Deaths</MudTd>
+                        <MudTd DataLabel="GamerTag">
+                            <MudLink Color="Color.Inherit" Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")" Class="plain-link">
+                                @context.GamerTag
+                            </MudLink>
+                        </MudTd>
+                        <MudTd DataLabel="Score">
+                            <span style="@GetHighlightStyle(context.IsHighestScore)">
+                                @context.Score
+                            </span>
+                        </MudTd>
+                        <MudTd DataLabel="Kills">
+                            <span style="@GetHighlightStyle(context.IsHighestKills)">
+                                @context.Kills
+                            </span>
+                        </MudTd>
+                        <MudTd DataLabel="Assists">
+                            <span style="@GetHighlightStyle(context.IsHighestAssists)">
+                                @context.Assists
+                            </span>
+                        </MudTd>
+                        <MudTd DataLabel="Deaths">
+                            <span style="@GetHighlightStyle(context.IsLowestDeaths)">
+                                @context.Deaths
+                            </span>
+                        </MudTd>
                     </RowTemplate>
                 </MudTable>
             </div>
@@ -75,7 +110,11 @@ else if (game is not null)
                         <MudTh>Other</MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="GamerTag">@context.GamerTag</MudTd>
+                        <MudTd DataLabel="GamerTag">
+                            <MudLink Color="Color.Inherit" Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")" Class="plain-link">
+                                @context.GamerTag
+                            </MudLink>
+                        </MudTd>
                         <MudTd DataLabel="WeaponKills">@context.WeaponKills</MudTd>
                         <MudTd DataLabel="GrenadeKills">@context.GrenadeKills</MudTd>
                         <MudTd DataLabel="MeleeKills">@context.MeleeKills</MudTd>
@@ -95,7 +134,11 @@ else if (game is not null)
                         <MudTh>Medals</MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="GamerTag">@context.GamerTag</MudTd>
+                        <MudTd DataLabel="GamerTag">
+                            <MudLink Color="Color.Inherit" Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")" Class="plain-link">
+                                @context.GamerTag
+                            </MudLink>
+                        </MudTd>
                         <MudTd DataLabel="AverageLife">@FormatAverageLife(context)</MudTd>
                         <MudTd DataLabel="KillDeathSpread">@FormatKDSpread(context.KillDeathSpread)</MudTd>
                         <MudTd DataLabel="Spree">@context.Spree</MudTd>
@@ -155,22 +198,30 @@ else
     {
         if (game?.IsTeamsEnabled == true)
         {
-            // Team-based coloring
-            return p.TeamId switch
-            {
-                0 => "background:rgba(255,0,0,0.15);border-left:3px solid #ff2d2d;",
-                1 => "background:rgba(0,120,255,0.15);border-left:3px solid #2196f3;",
-                2 => "background:rgba(128,128,128,0.15);border-left:3px solid #9e9e9e;",
-                3 => "background:rgba(128,0,128,0.18);border-left:3px solid #ba68c8;",
-                _ => ""
-            };
+            return $"background:{TeamColor(p.TeamId)};";
         }
-
-        // Non-team styling keeps first-place highlight
-        if (p.Place == 1)
-            return "background:linear-gradient(90deg,rgba(255,215,0,0.15),rgba(0,0,0,0));border-left:3px solid #ffd700;";
-        return p.Place % 2 == 0 ? "background-color:rgba(255,255,255,0.03);" : "";
+        return "";
     }
+
+    private static string TeamColor(int teamId)
+    {
+        return teamId switch
+        {
+            0 => "#B71C1C",
+            1 => "#0D47A1",
+            2 => "#009688",
+            3 => "#E65100",
+            4 => "#3E2723",
+            5 => "#FAFAFA",
+            6 => "#C51162",
+            7 => "#FBC02D",
+            8 => "#263238",
+            9 => "#6200EA",
+            _ => "#212121",
+        };
+    }
+
+    private static string TeamTextColor(int teamId) => $"color:{TeamColor(teamId)};";
 
     private static string FormatSeconds(int seconds)
         => TimeSpan.FromSeconds(seconds).ToString(@"m\:ss");
@@ -181,6 +232,9 @@ else
         var avg = p.SecondsAlive / deaths;
         return FormatSeconds(avg);
     }
+
+    private static string GetHighlightStyle(bool highlight)
+        => highlight ? "font-weight:bold;color:#FFF59D;" : "";
 
     private static string FormatKDSpread(int kdSpread)
     {
@@ -208,4 +262,16 @@ else
         .stats-panel .mud-table {
             min-width: 100%;
         }
+
+    .plain-link {
+        color: inherit !important;
+        text-decoration: none;
+        font-weight: inherit;
+    }
+
+    .pcr-section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
 </style>

@@ -1,4 +1,5 @@
-﻿using HaloStats.Web.Server.Domain.Mappers;
+﻿using HaloStats.Database;
+using HaloStats.Web.Server.Domain.Mappers;
 using HaloStats.Web.Server.Domain.Repositories;
 using HaloStats.Web.Shared.Contracts.CarnageReport;
 
@@ -12,10 +13,17 @@ public interface IPostCarnageReportService
 public class PostCarnageReportService : IPostCarnageReportService
 {
     private readonly IGameRepository gameRepository;
+    private readonly IGamerTagRepository gamerTagRepository;
+    private readonly HaloStatsDbContext db;
 
-    public PostCarnageReportService(IGameRepository gameRepository)
+    public PostCarnageReportService(
+        IGameRepository gameRepository, 
+        IGamerTagRepository gamerTagRepository,
+        HaloStatsDbContext db)
     {
         this.gameRepository = gameRepository;
+        this.gamerTagRepository = gamerTagRepository;
+        this.db = db;
     }
 
     public async Task<PostCarnageReportResponse> SavePostCarnageReport(PostCarnageReportRequest request, string ipAddress)
@@ -46,7 +54,18 @@ public class PostCarnageReportService : IPostCarnageReportService
         }
 
         game.CalcualtePlayerStandings();
-        await gameRepository.AddGame(game);
+        db.Games.Add(game);
+
+        var gamerTags = game.Players.Select(p => p.GamerTag).Distinct().ToList();
+        var nonExistingGamerTags = await gamerTagRepository.GetNonExistingGamerTags(gamerTags);
+        db.GamerTags.AddRange(nonExistingGamerTags.Select(ngt => new Database.Entities.GamerTag
+        {
+            Name = ngt,
+            XboxUserId = game.Players.First(p => p.GamerTag == ngt).XboxUserId
+        }));
+
+        await db.SaveChangesAsync();
+        
 
         return new PostCarnageReportResponse
         {

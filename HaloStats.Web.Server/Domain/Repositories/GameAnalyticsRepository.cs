@@ -1,6 +1,5 @@
 ﻿using HaloStats.Database;
 using HaloStats.Database.Entities;
-using HaloStats.Database.Enums;
 using HaloStats.Web.Server.Domain.Mappers;
 using HaloStats.Web.Shared.Contracts.Shared;
 using HaloStats.Web.Shared.Enums;

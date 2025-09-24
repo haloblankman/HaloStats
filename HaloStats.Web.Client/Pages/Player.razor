@@ -11,7 +11,7 @@
 <MudPaper Class="pa-4">
     @if (gamertag != null)
     {
-        <MudText Typo="Typo.h4">Player @gamertag</MudText>
+        <MudText Typo="Typo.h1">@gamertag</MudText>
     }
 
     @if (isLoading)
@@ -24,7 +24,6 @@
     }
     else
     {
-        <MudText Typo="Typo.h6">@player.Gamertag</MudText>
         <MudText>GamesPlayedCount: @player.PlayerSummary.GamesPlayedCount</MudText>
         <MudText>TotalWins: @player.PlayerSummary.TotalWins</MudText>
         <MudText>TotalKills: @player.PlayerSummary.TotalKills</MudText>

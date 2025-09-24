@@ -10,6 +10,7 @@ public class HaloStatsDbContext : DbContext
     public DbSet<GamePlayer> GamePlayers { get; set; }
     public DbSet<GamePlayerCustomStat> GamePlayerCustomStats { get; set; }
     public DbSet<GamePlayerMedal> GamePlayerMedals { get; set; }
+    public DbSet<GamerTag> GamerTags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,5 +37,8 @@ public class HaloStatsDbContext : DbContext
 
         modelBuilder.Entity<GamePlayer>()
             .HasIndex(gp => gp.GamerTag);
+
+        modelBuilder.Entity<GamerTag>()
+            .HasIndex(gp => gp.Name);
     }
 }

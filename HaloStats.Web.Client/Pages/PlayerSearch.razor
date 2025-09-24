@@ -1,5 +1,81 @@
-﻿<h3>PlayerSearch</h3>
+﻿@page "/player-search"
+@using HaloStats.Web.Shared.Contracts.Shared
+@inject HttpClient Http
+
+<MudPaper Class="pa-4" Elevation="2">
+    <MudText Typo="Typo.h5" GutterBottom="true">Player Search</MudText>
+    <MudText Typo="Typo.body2" GutterBottom="true">
+        Type in the box below to filter gamer tags. The list updates as you type.
+    </MudText>
+    <MudTextField @bind-Value="SearchText" Label="Search for a gamer..." Variant="Variant.Outlined" Immediate="true" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mb-4" />
+    <MudList T="string" Dense="true">
+        @if (filteredGamerTags is null)
+        {
+            <MudListItem>
+                <MudText>Loading...</MudText>
+            </MudListItem>
+        }
+        else if (!filteredGamerTags.Any())
+        {
+            <MudListItem>
+                <MudText>No gamer tags found.</MudText>
+            </MudListItem>
+        }
+        else
+        {
+            @foreach (var gamer in filteredGamerTags)
+            {
+                <MudListItem Href="@($"/player?gamertag={Uri.EscapeDataString(gamer.Name)}")" Target="_self">
+                    @gamer.Name
+                </MudListItem>
+            }
+        }
+    </MudList>
+</MudPaper>
 
 @code {
+    private List<GamerTagInfo>? allGamerTags;
+    private List<GamerTagInfo>? filteredGamerTags;
+    private string searchText = string.Empty;
 
+    protected override async Task OnInitializedAsync()
+    {
+        allGamerTags = await Http.GetFromJsonAsync<List<GamerTagInfo>>("/api/gamertag");
+        FilterGamerTags();
+    }
+
+    private void FilterGamerTags()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            filteredGamerTags = allGamerTags;
+        }
+        else
+        {
+            filteredGamerTags = allGamerTags?
+                .Where(g => g.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    private string SearchText
+    {
+        get => searchText;
+        set
+        {
+            if (searchText != value)
+            {
+                searchText = value;
+                FilterGamerTags();
+            }
+        }
+    }
 }
+
+<style>
+    .plain-link {
+        color: inherit !important;
+        text-decoration: none;
+        font-weight: inherit;
+    }
+</style>

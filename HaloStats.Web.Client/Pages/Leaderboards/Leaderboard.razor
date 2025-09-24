@@ -4,7 +4,8 @@
 
 @inject HttpClient Http
 
-<MudText Typo="Typo.h1">Halo Post Carnage Reports</MudText>
+<MudText Typo="Typo.h3">Leaderboards for</MudText>
+<MudText Typo="Typo.h1">@GameDisplay</MudText>
 <MudDivider />
 @if (isLoading)
 {
@@ -154,9 +155,9 @@ else if (leaderboard is not null)
         }
         else
         {
-            GameDisplay = LeaderboardRouteMapper.MapGameEnumToDescription(gameEnum.Value);
             gameToLoad = gameEnum.Value;
         }
+        GameDisplay = LeaderboardRouteMapper.MapGameEnumToDescription(gameEnum.Value);
         await LoadLeaderboard(gameToLoad);
         StateHasChanged();
     }
