@@ -1,4 +1,5 @@
 ﻿using HaloStats.Database.Entities;
+using HaloStats.Database.Entities.StoredProcs;
 using Microsoft.EntityFrameworkCore;
 
 namespace HaloStats.Database;
@@ -11,6 +12,10 @@ public class HaloStatsDbContext : DbContext
     public DbSet<GamePlayerCustomStat> GamePlayerCustomStats { get; set; }
     public DbSet<GamePlayerMedal> GamePlayerMedals { get; set; }
     public DbSet<GamerTag> GamerTags { get; set; }
+
+    #region Stored Procedures
+    public DbSet<Usp_GetTopTeammatePairs> Usp_GetTopTeammatePairs { get; set; }
+    #endregion
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,5 +48,9 @@ public class HaloStatsDbContext : DbContext
 
         modelBuilder.Entity<GamerTag>()
             .HasIndex(gp => gp.Name);
+
+        #region stored procs
+        modelBuilder.Entity<Usp_GetTopTeammatePairs>().HasNoKey();
+        #endregion
     }
 }

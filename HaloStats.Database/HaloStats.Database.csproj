@@ -12,8 +12,4 @@
     <PackageReference Include="UUIDNext" Version="4.2.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Sql\" />
-  </ItemGroup>
-
 </Project>

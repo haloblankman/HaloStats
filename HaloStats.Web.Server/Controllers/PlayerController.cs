@@ -35,6 +35,7 @@ namespace HaloStats.Web.Server.Controllers
             return Ok(gamesPlayed);
         }
 
+
         //[HttpGet("search")]
         //public async Task<IActionResult> SearchPlayers(string query)
         //{

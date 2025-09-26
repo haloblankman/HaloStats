@@ -1,5 +1,6 @@
 ﻿using HaloStats.Database;
 using HaloStats.Database.Entities;
+using HaloStats.Database.Entities.StoredProcs;
 using HaloStats.Web.Server.Domain.Mappers;
 using HaloStats.Web.Shared.Contracts.Shared;
 using HaloStats.Web.Shared.Enums;
@@ -117,6 +118,15 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
 
     public async Task<TopTeammatePairs> GetTopTeammatePairs(HaloGames game)
     {
+        var gameEnum = (int)game; // or -1 for all
+        var pairs = await db.Usp_GetTopTeammatePairs
+            .FromSqlRaw("SELECT * FROM GetTopTeammatePairs({0})", gameEnum)
+            .ToListAsync();
+        return new TopTeammatePairs
+        {
+            Pairs = pairs.Select((p, i) => p.ToTopTeammatePairs(i + 1)).ToList()
+        };
+
         var gamesFilter = GetGameFilter(game);
         var gamePlayers = await db.GamePlayers
         .AsNoTracking()
