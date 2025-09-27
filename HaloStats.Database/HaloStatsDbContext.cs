@@ -11,11 +11,7 @@ public class HaloStatsDbContext : DbContext
     public DbSet<GamePlayer> GamePlayers { get; set; }
     public DbSet<GamePlayerCustomStat> GamePlayerCustomStats { get; set; }
     public DbSet<GamePlayerMedal> GamePlayerMedals { get; set; }
-    public DbSet<GamerTag> GamerTags { get; set; }
-
-    #region Stored Procedures
-    public DbSet<Usp_GetTopTeammatePairs> Usp_GetTopTeammatePairs { get; set; }
-    #endregion
+    public DbSet<Gamertag> Gamertags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,13 +40,12 @@ public class HaloStatsDbContext : DbContext
             .HasIndex(g => g.ReportedAt);
 
         modelBuilder.Entity<GamePlayer>()
-            .HasIndex(gp => gp.GamerTag);
+            .HasIndex(gp => gp.Gamertag);
 
-        modelBuilder.Entity<GamerTag>()
+        modelBuilder.Entity<Gamertag>()
             .HasIndex(gp => gp.Name);
 
-        #region stored procs
-        modelBuilder.Entity<Usp_GetTopTeammatePairs>().HasNoKey();
-        #endregion
+        modelBuilder.Entity<Usp_GetTopTeammatePairs>().HasNoKey().ToView(null);
+        modelBuilder.Entity<Usp_GetTopOpponentPairs>().HasNoKey().ToView(null);
     }
 }

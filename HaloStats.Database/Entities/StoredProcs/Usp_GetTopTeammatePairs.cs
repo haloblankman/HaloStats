@@ -2,8 +2,8 @@
 
 public class Usp_GetTopTeammatePairs
 {
-    public required string PlayerOneGamerTag { get; set; }
-    public required string PlayerTwoGamerTag { get; set; }
+    public required string PlayerOneGamertag { get; set; }
+    public required string PlayerTwoGamertag { get; set; }
     public required int GamesPlayedTogether { get; set; }
     public required int WinsTogether { get; set; }
     public required int LossesTogether { get; set; }

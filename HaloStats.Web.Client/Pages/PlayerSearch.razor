@@ -9,13 +9,13 @@
     </MudText>
     <MudTextField @bind-Value="SearchText" Label="Search for a gamer..." Variant="Variant.Outlined" Immediate="true" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mb-4" />
     <MudList T="string" Dense="true">
-        @if (filteredGamerTags is null)
+        @if (filteredGamertags is null)
         {
             <MudListItem>
                 <MudText>Loading...</MudText>
             </MudListItem>
         }
-        else if (!filteredGamerTags.Any())
+        else if (!filteredGamertags.Any())
         {
             <MudListItem>
                 <MudText>No gamer tags found.</MudText>
@@ -23,7 +23,7 @@
         }
         else
         {
-            @foreach (var gamer in filteredGamerTags)
+            @foreach (var gamer in filteredGamertags)
             {
                 <MudListItem Href="@($"/player?gamertag={Uri.EscapeDataString(gamer.Name)}")" Target="_self">
                     @gamer.Name
@@ -34,25 +34,25 @@
 </MudPaper>
 
 @code {
-    private List<GamerTagInfo>? allGamerTags;
-    private List<GamerTagInfo>? filteredGamerTags;
+    private List<GamertagInfo>? allGamertags;
+    private List<GamertagInfo>? filteredGamertags;
     private string searchText = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        allGamerTags = await Http.GetFromJsonAsync<List<GamerTagInfo>>("/api/gamertag");
-        FilterGamerTags();
+        allGamertags = await Http.GetFromJsonAsync<List<GamertagInfo>>("/api/gamertag");
+        FilterGamertags();
     }
 
-    private void FilterGamerTags()
+    private void FilterGamertags()
     {
         if (string.IsNullOrWhiteSpace(searchText))
         {
-            filteredGamerTags = allGamerTags;
+            filteredGamertags = allGamertags;
         }
         else
         {
-            filteredGamerTags = allGamerTags?
+            filteredGamertags = allGamertags?
                 .Where(g => g.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
@@ -66,7 +66,7 @@
             if (searchText != value)
             {
                 searchText = value;
-                FilterGamerTags();
+                FilterGamertags();
             }
         }
     }

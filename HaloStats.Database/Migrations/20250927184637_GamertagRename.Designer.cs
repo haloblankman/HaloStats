@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HaloStats.Database.Migrations
 {
     [DbContext(typeof(HaloStatsDbContext))]
-    [Migration("20250926034913_Usp_TopTeammatePairs")]
-    partial class Usp_TopTeammatePairs
+    [Migration("20250927184637_GamertagRename")]
+    partial class GamertagRename
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -133,7 +133,7 @@ namespace HaloStats.Database.Migrations
                     b.Property<int>("GameMode")
                         .HasColumnType("integer");
 
-                    b.Property<string>("GamerTag")
+                    b.Property<string>("Gamertag")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -218,7 +218,7 @@ namespace HaloStats.Database.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.HasIndex("GamerTag");
+                    b.HasIndex("Gamertag");
 
                     b.ToTable("GamePlayers");
                 });
@@ -269,9 +269,9 @@ namespace HaloStats.Database.Migrations
                     b.ToTable("GamePlayerMedals");
                 });
 
-            modelBuilder.Entity("HaloStats.Database.Entities.GamerTag", b =>
+            modelBuilder.Entity("HaloStats.Database.Entities.Gamertag", b =>
                 {
-                    b.Property<Guid>("GamerTagId")
+                    b.Property<Guid>("GamertagId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -286,11 +286,34 @@ namespace HaloStats.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("GamerTagId");
+                    b.HasKey("GamertagId");
 
                     b.HasIndex("Name");
 
-                    b.ToTable("GamerTags");
+                    b.ToTable("Gamertags");
+                });
+
+            modelBuilder.Entity("HaloStats.Database.Entities.StoredProcs.Usp_GetTopOpponentPairs", b =>
+                {
+                    b.Property<int>("GamesPlayedAgainst")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LossesAgainst")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OpponentGamertag")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("WinRate")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("WinsAgainst")
+                        .HasColumnType("integer");
+
+                    b.ToTable((string)null);
+
+                    b.ToView(null, (string)null);
                 });
 
             modelBuilder.Entity("HaloStats.Database.Entities.StoredProcs.Usp_GetTopTeammatePairs", b =>
@@ -301,11 +324,11 @@ namespace HaloStats.Database.Migrations
                     b.Property<int>("LossesTogether")
                         .HasColumnType("integer");
 
-                    b.Property<string>("PlayerOneGamerTag")
+                    b.Property<string>("PlayerOneGamertag")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PlayerTwoGamerTag")
+                    b.Property<string>("PlayerTwoGamertag")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -315,7 +338,9 @@ namespace HaloStats.Database.Migrations
                     b.Property<int>("WinsTogether")
                         .HasColumnType("integer");
 
-                    b.ToTable("Usp_GetTopTeammatePairs");
+                    b.ToTable((string)null);
+
+                    b.ToView(null, (string)null);
                 });
 
             modelBuilder.Entity("HaloStats.Database.Entities.GamePlayer", b =>

@@ -1,4 +1,5 @@
 ﻿using HaloStats.Web.Server.Domain.Services;
+using HaloStats.Web.Shared.Contracts.Player;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HaloStats.Web.Server.Controllers
@@ -29,17 +30,10 @@ namespace HaloStats.Web.Server.Controllers
         }
 
         [HttpGet("{gamertag}/games")]
-        public async Task<IActionResult> GamesPlayed(string gamertag, int pageNumber = 1, int pageSize = 100)
+        public async Task<IActionResult> GamesPlayed(string gamertag, [FromQuery] GetPlayerGamesRequest request)
         {
-            var gamesPlayed = await getPlayerGameHistory.GetGamesPlayed(gamertag, pageNumber, pageSize);
+            var gamesPlayed = await getPlayerGameHistory.GetGamesPlayed(gamertag, request);
             return Ok(gamesPlayed);
         }
-
-
-        //[HttpGet("search")]
-        //public async Task<IActionResult> SearchPlayers(string query)
-        //{
-
-        //}
     }
 }

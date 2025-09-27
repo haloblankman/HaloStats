@@ -25,7 +25,7 @@ public static class GameMapper
                 Assists = p.Assists,
                 ClanTag = p.ClanTag,
                 Deaths = p.Deaths,
-                GamerTag = p.GamerTag,
+                Gamertag = p.Gamertag,
                 GrenadeKills = p.KillsGrenade,
                 KillDeathSpread = p.Kills - p.Deaths,
                 Kills = p.Kills,

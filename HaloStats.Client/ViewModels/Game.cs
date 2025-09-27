@@ -50,7 +50,7 @@ public class  PlayerScore
     public int PlayerIndex { get; set; }
     public string XboxUserId { get; set; }
     public bool IsGuest { get; set; }
-    public string GamerTag { get; set; }
+    public string Gamertag { get; set; }
     public string ClanTag { get; set; }
     public int TeamId { get; set; }
     public int Kills { get; set; }

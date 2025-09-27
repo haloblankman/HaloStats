@@ -32,7 +32,7 @@ internal static class DashboardMapper
                     .Select(g => new
                     {
                         TeamId = g.Key,
-                        GamerTags = g.Select(p => p.GamerTag).ToList(),
+                        Gamertags = g.Select(p => p.Gamertag).ToList(),
                         Score = g.Sum(p => p.Score)
                     })
                     .ToList();
@@ -44,7 +44,7 @@ internal static class DashboardMapper
                     .Select(t => new RecentTeamGame
                     {
                         TeamId = t.TeamId,
-                        GamerTags = t.GamerTags,
+                        Gamertags = t.Gamertags,
                         IsWinner = t.Score == maxScore,
                         Score = t.Score
                     })
@@ -58,8 +58,8 @@ internal static class DashboardMapper
 
                 recentGame.NonTeamGame = new RecentNonTeamGame
                 {
-                    GamerTags = game.Players.Select(p => p.GamerTag).ToList(),
-                    WinnerGamerTag = winner.GamerTag,
+                    Gamertags = game.Players.Select(p => p.Gamertag).ToList(),
+                    WinnerGamertag = winner.Gamertag,
                     Score = winner.Score
                 };
             }

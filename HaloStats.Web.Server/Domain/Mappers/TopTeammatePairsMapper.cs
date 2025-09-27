@@ -9,9 +9,9 @@ public static class TopTeammatePairsMapper
     {
         return new TeammatePair
         {
-            Rank = 0,
-            PlayerOneGamerTag = entity.PlayerOneGamerTag,
-            PlayerTwoGamerTag = entity.PlayerTwoGamerTag,
+            Rank = rank,
+            PlayerOneGamertag = entity.PlayerOneGamertag,
+            PlayerTwoGamertag = entity.PlayerTwoGamertag,
             GamesPlayedTogether = entity.GamesPlayedTogether,
             WinsTogether = entity.WinsTogether,
             LossesTogether = entity.LossesTogether,

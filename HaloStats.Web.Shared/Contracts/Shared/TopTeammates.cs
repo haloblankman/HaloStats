@@ -1,17 +1,17 @@
 ﻿namespace HaloStats.Web.Shared.Contracts.Shared;
 
-public class TopTeammatePairs
+public class TopTeammates
 {
-    public required List<TeammatePair> Pairs { get; set; }
+    public required List<TopTeammateRecord> Teammates { get; set; }
 }
 
-public class TeammatePair
+public class TopTeammateRecord
 {
     public required int Rank { get; set; }
-    public required string PlayerOneGamertag { get; set; }
-    public required string PlayerTwoGamertag { get; set; }
+    public required string TeammateGamertag { get; set; }
     public required int GamesPlayedTogether { get; set; }
     public required int WinsTogether { get; set; }
     public required int LossesTogether { get; set; }
     public required decimal WinRate { get; set; }
 }
+

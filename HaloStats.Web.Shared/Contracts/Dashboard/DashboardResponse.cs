@@ -21,14 +21,14 @@ public class RecentGame
 public class RecentTeamGame
 {
     public required int TeamId { get; set; }
-    public required List<string> GamerTags { get; set; }
+    public required List<string> Gamertags { get; set; }
     public required bool IsWinner { get; set; }
     public required int Score { get; set; }
 }
 
 public class RecentNonTeamGame
 {
-    public required List<string> GamerTags { get; set; }
-    public required string WinnerGamerTag { get; set; }
+    public required List<string> Gamertags { get; set; }
+    public required string WinnerGamertag { get; set; }
     public required int Score { get; set; }
 }

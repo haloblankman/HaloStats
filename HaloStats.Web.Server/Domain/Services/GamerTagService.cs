@@ -3,26 +3,26 @@ using HaloStats.Web.Shared.Contracts.Shared;
 
 namespace HaloStats.Web.Server.Domain.Services;
 
-public interface IGamerTagService
+public interface IGamertagService
 {
-    Task<List<GamerTagInfo>> GetGamerTags();
+    Task<List<GamertagInfo>> GetGamertags();
 }
 
-public class GamerTagService : IGamerTagService
+public class GamertagService : IGamertagService
 {
-    private readonly IGamerTagRepository gamerTagRepository;
+    private readonly IGamertagRepository gamerTagRepository;
 
-    public GamerTagService(IGamerTagRepository gamerTagRepository)
+    public GamertagService(IGamertagRepository gamerTagRepository)
     {
         this.gamerTagRepository = gamerTagRepository;
     }
 
-    public async Task<List<GamerTagInfo>> GetGamerTags()
+    public async Task<List<GamertagInfo>> GetGamertags()
     {
-        var gamerTags = await gamerTagRepository.GetAllGamerTags();
-        return gamerTags.Select(gt => new GamerTagInfo
+        var gamerTags = await gamerTagRepository.GetAllGamertags();
+        return gamerTags.Select(gt => new GamertagInfo
         {
-            GamerTagId = gt.GamerTagId,
+            GamertagId = gt.GamertagId,
             Name = gt.Name,
             XboxUserId = gt.XboxUserId
         }).OrderBy(p => p.Name).ToList();

@@ -12,8 +12,9 @@ public interface IGameAnalyticsRepository
 {
     Task<TopPlayersByKillCount> GetTopPlayersByKillCount(HaloGames game);
     Task<TopPlayersByKillCount> GetTopPlayersByKillCountThisMonth(HaloGames game);
-    Task<TopTeammatePairs> GetTopTeammatePairs(HaloGames game);
-    Task<TopTeammatePairs> GetTopTeammatePairsByWins(HaloGames game);
+    Task<TopTeammatePairs> GetTopTeammatePairs(string? gamertag, HaloGames game, int take = 10);
+    Task<TopTeammatePairs> GetTopTeammatePairsByWins(string? gamertag, HaloGames game, int take = 10);
+    Task<TopOpponents> GetTopOpponents(string? gamertag, HaloGames game, int take = 10);
 
 }
 
@@ -33,9 +34,9 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => gp)
-            .GroupBy(gp => gp.GamerTag)
+            .GroupBy(gp => gp.Gamertag)
             .Select(g => new {
-                GamerTag = g.Key,
+                Gamertag = g.Key,
                 Kills = g.Sum(x => x.Kills),
                 Deaths = g.Sum(x => x.Deaths),
                 KillDeathRatio = g.Sum(x => x.Deaths) == 0
@@ -50,7 +51,7 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
             .Select((p, i) => new PlayerByKillCount
             {
                 Rank = i + 1,
-                GamerTag = p.GamerTag,
+                Gamertag = p.Gamertag,
                 Kills = p.Kills,
                 Deaths = p.Deaths,
                 KillDeathRatio = p.KillDeathRatio
@@ -70,7 +71,7 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
         if (game != HaloGames.HaloMccAll)
         {
             var gameEnum = game.MapToGameEnum();
-            gamesFilter = gamesFilter.Where(g => g.GameEnum == gameEnum);
+            gamesFilter = gamesFilter.Where(g => gameEnum == null || g.GameEnum == gameEnum );
         }
         return gamesFilter;
     }
@@ -85,9 +86,9 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => gp)
-            .GroupBy(gp => gp.GamerTag)
+            .GroupBy(gp => gp.Gamertag)
             .Select(g => new {
-                GamerTag = g.Key,
+                Gamertag = g.Key,
                 Kills = g.Sum(x => x.Kills),
                 Deaths = g.Sum(x => x.Deaths),
                 KillDeathRatio = g.Sum(x => x.Deaths) == 0
@@ -102,7 +103,7 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
             .Select((p, i) => new PlayerByKillCount
             {
                 Rank = i + 1,
-                GamerTag = p.GamerTag,
+                Gamertag = p.Gamertag,
                 Kills = p.Kills,
                 Deaths = p.Deaths,
                 KillDeathRatio = p.KillDeathRatio
@@ -116,168 +117,40 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
         return result;
     }
 
-    public async Task<TopTeammatePairs> GetTopTeammatePairs(HaloGames game)
+    public async Task<TopTeammatePairs> GetTopTeammatePairs(string? gamertag, HaloGames game, int take = 10)
     {
-        var gameEnum = (int)game; // or -1 for all
-        var pairs = await db.Usp_GetTopTeammatePairs
-            .FromSqlRaw("SELECT * FROM GetTopTeammatePairs({0})", gameEnum)
+        var gameEnum = game.MapToGameEnum();
+        var pairs = await db.Set<Usp_GetTopTeammatePairs>()
+            .FromSqlRaw("SELECT * FROM usp_gettopteammatepairs({0},{1},{2})", gamertag, gameEnum, take)
             .ToListAsync();
         return new TopTeammatePairs
         {
             Pairs = pairs.Select((p, i) => p.ToTopTeammatePairs(i + 1)).ToList()
         };
+    }
 
-        var gamesFilter = GetGameFilter(game);
-        var gamePlayers = await db.GamePlayers
-        .AsNoTracking()
-        .Join(
-            gamesFilter.Where(g => g.IsTeamsEnabled),
-            gp => gp.GameId,
-            g => g.GameId,
-            (gp, g) => new { gp.GameId, gp.GamerTag, gp.TeamId, gp.IsWinner }
-        )
-        .ToListAsync();
-
-        // Step 2: Group by GameId and TeamId (in memory)
-        var pairStats = new Dictionary<(string, string), (int games, int wins, int losses)>();
-
-        var grouped = gamePlayers
-            .GroupBy(x => new { x.GameId, x.TeamId });
-
-        foreach (var teamGroup in grouped)
-        {
-            var players = teamGroup.ToList();
-            for (int i = 0; i < players.Count; i++)
-            {
-                for (int j = i + 1; j < players.Count; j++)
-                {
-                    var p1 = players[i];
-                    var p2 = players[j];
-                    // Always order the pair alphabetically to avoid duplicates
-                    var playerOne = string.Compare(p1.GamerTag, p2.GamerTag, StringComparison.Ordinal) < 0 ? p1.GamerTag : p2.GamerTag;
-                    var playerTwo = string.Compare(p1.GamerTag, p2.GamerTag, StringComparison.Ordinal) < 0 ? p2.GamerTag : p1.GamerTag;
-                    var key = (playerOne, playerTwo);
-
-                    bool isWin = p1.IsWinner && p2.IsWinner;
-                    if (!pairStats.TryGetValue(key, out var stats))
-                        stats = (0, 0, 0);
-
-                    stats.games++;
-                    if (isWin) stats.wins++;
-                    else stats.losses++;
-
-                    pairStats[key] = stats;
-                }
-            }
-        }
-
-        // Step 3: Project and rank
-        var rankedPairs = pairStats
-            .Select((kv, idx) => new
-            {
-                PlayerOne = kv.Key.Item1,
-                PlayerTwo = kv.Key.Item2,
-                GamesPlayedTogether = kv.Value.games,
-                WinsTogether = kv.Value.wins,
-                LossesTogether = kv.Value.losses,
-                WinRate = kv.Value.games == 0 ? 0 : (decimal)kv.Value.wins / kv.Value.games
-            })
-            .OrderByDescending(x => x.GamesPlayedTogether)
-            .ThenByDescending(x => x.WinsTogether)
-            .Take(10)
-            .Select((p, i) => new TeammatePair
-            {
-                Rank = i + 1,
-                PlayerOneGamerTag = p.PlayerOne,
-                PlayerTwoGamerTag = p.PlayerTwo,
-                GamesPlayedTogether = p.GamesPlayedTogether,
-                WinsTogether = p.WinsTogether,
-                LossesTogether = p.LossesTogether,
-                WinRate = p.WinRate
-            })
-            .ToList();
-
+    public async Task<TopTeammatePairs> GetTopTeammatePairsByWins(string? gamertag, HaloGames game, int take = 10)
+    {
+        var gameEnum = game.MapToGameEnum();
+        var pairs = await db.Set<Usp_GetTopTeammatePairs>()
+            .FromSqlRaw("SELECT * FROM usp_gettopteammatepairsbywins({0},{1},{2})", gamertag, gameEnum, take)
+            .ToListAsync();
         return new TopTeammatePairs
         {
-            Pairs = rankedPairs
+            Pairs = pairs.Select((p, i) => p.ToTopTeammatePairs(i + 1)).ToList()
         };
     }
 
-    public async Task<TopTeammatePairs> GetTopTeammatePairsByWins(HaloGames game)
+
+    public async Task<TopOpponents> GetTopOpponents(string? gamertag, HaloGames game, int take = 10)
     {
-        var gamesFilter = GetGameFilter(game);
-        var gamePlayers = await db.GamePlayers
-            .AsNoTracking()
-            .Join(
-                gamesFilter.Where(g => g.IsTeamsEnabled),
-                gp => gp.GameId,
-                g => g.GameId,
-                (gp, g) => new { gp.GameId, gp.GamerTag, gp.TeamId, gp.IsWinner }
-            )
+        var gameEnum = game.MapToGameEnum();
+        var ops = await db.Set<Usp_GetTopOpponentPairs>()
+            .FromSqlRaw("SELECT * FROM usp_gettopopponents({0},{1},{2})", gamertag, gameEnum, take)
             .ToListAsync();
-
-        // Step 2: Group by GameId and TeamId (in memory)
-        var pairStats = new Dictionary<(string, string), (int games, int wins, int losses)>();
-
-        var grouped = gamePlayers
-            .GroupBy(x => new { x.GameId, x.TeamId });
-
-        foreach (var teamGroup in grouped)
+        return new TopOpponents
         {
-            var players = teamGroup.ToList();
-            for (int i = 0; i < players.Count; i++)
-            {
-                for (int j = i + 1; j < players.Count; j++)
-                {
-                    var p1 = players[i];
-                    var p2 = players[j];
-                    // Always order the pair alphabetically to avoid duplicates
-                    var playerOne = string.Compare(p1.GamerTag, p2.GamerTag, StringComparison.Ordinal) < 0 ? p1.GamerTag : p2.GamerTag;
-                    var playerTwo = string.Compare(p1.GamerTag, p2.GamerTag, StringComparison.Ordinal) < 0 ? p2.GamerTag : p1.GamerTag;
-                    var key = (playerOne, playerTwo);
-
-                    bool isWin = p1.IsWinner && p2.IsWinner;
-                    if (!pairStats.TryGetValue(key, out var stats))
-                        stats = (0, 0, 0);
-
-                    stats.games++;
-                    if (isWin) stats.wins++;
-                    else stats.losses++;
-
-                    pairStats[key] = stats;
-                }
-            }
-        }
-
-        // Step 3: Project and rank by WinsTogether, then GamesPlayedTogether
-        var rankedPairs = pairStats
-            .Select((kv, idx) => new
-            {
-                PlayerOne = kv.Key.Item1,
-                PlayerTwo = kv.Key.Item2,
-                GamesPlayedTogether = kv.Value.games,
-                WinsTogether = kv.Value.wins,
-                LossesTogether = kv.Value.losses,
-                WinRate = kv.Value.games == 0 ? 0 : (decimal)kv.Value.wins / kv.Value.games
-            })
-            .OrderByDescending(x => x.WinsTogether)
-            .ThenByDescending(x => x.GamesPlayedTogether)
-            .Take(10)
-            .Select((p, i) => new TeammatePair
-            {
-                Rank = i + 1,
-                PlayerOneGamerTag = p.PlayerOne,
-                PlayerTwoGamerTag = p.PlayerTwo,
-                GamesPlayedTogether = p.GamesPlayedTogether,
-                WinsTogether = p.WinsTogether,
-                LossesTogether = p.LossesTogether,
-                WinRate = p.WinRate
-            })
-            .ToList();
-
-        return new TopTeammatePairs
-        {
-            Pairs = rankedPairs
+            Opponents = ops.Select((p, i) => p.ToTopOpponentRecord(i + 1)).ToList()
         };
     }
 }

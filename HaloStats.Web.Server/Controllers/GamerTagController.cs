@@ -6,19 +6,19 @@ namespace HaloStats.Web.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class GamerTagController : ControllerBase
+public class GamertagController : ControllerBase
 {
-    private readonly IGamerTagService gamerTagService;
+    private readonly IGamertagService gamertagService;
 
-    public GamerTagController(IGamerTagService gamerTagService)
+    public GamertagController(IGamertagService gamertagService)
     {
-        this.gamerTagService = gamerTagService;
+        this.gamertagService = gamertagService;
     }
 
     [HttpGet]
-    public async Task<List<GamerTagInfo>> GetGamerTags()
+    public async Task<List<GamertagInfo>> GetGamertags()
     {
-        var gamerTags = await gamerTagService.GetGamerTags();
+        var gamerTags = await gamertagService.GetGamertags();
         return gamerTags;
     }
 }

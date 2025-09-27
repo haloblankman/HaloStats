@@ -186,7 +186,7 @@
                                         <GridViewColumn Header="Gamertag" Width="200">
                                             <GridViewColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <TextBlock Text="{Binding GamerTag}" FontSize="18" Padding="8,4" HorizontalAlignment="Left">
+                                                    <TextBlock Text="{Binding Gamertag}" FontSize="18" Padding="8,4" HorizontalAlignment="Left">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
                                                                 <Setter Property="Foreground" Value="White"/>

@@ -21,4 +21,25 @@
     <ProjectReference Include="..\HaloStats.Web.Shared\HaloStats.Web.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Sql\StoredProcedures\Usp_GetTopOpponents.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sql\StoredProcedures\Usp_GetTopOpponents_down.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sql\StoredProcedures\Usp_GetTopTeammatePairs.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sql\StoredProcedures\Usp_GetTopTeammatePairsByWins.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sql\StoredProcedures\Usp_GetTopTeammatePairsByWins_down.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sql\StoredProcedures\Usp_GetTopTeammatePairs_down.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

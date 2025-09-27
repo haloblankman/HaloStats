@@ -3,7 +3,7 @@
 public class GamePlayerStats
 {
     public required string ClanTag { get; set; }
-    public required string GamerTag { get; set; }
+    public required string Gamertag { get; set; }
     public required int Score { get; set; }
     public required int Kills { get; set; }
     public required int Assists { get; set; }

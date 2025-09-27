@@ -1,6 +1,6 @@
 ﻿namespace HaloStats.Web.Shared.Contracts.Player;
 
-public class GamesPlayed
+public class GetPlayerGamesResponse
 {
     public required List<GamePlayed> Games { get; set; }
     public int PageNumber { get; set; }

@@ -23,7 +23,7 @@ public static class MultiplayerCarnageReportMapper
                 XboxUserId = p.mXboxUserId,
                 IsGuest = p.isGuest,
                 GameMode = p.mGameMode,
-                GamerTag = p.mGamertagText,
+                Gamertag = p.mGamertagText,
                 ClanTag = p.ClantagText,
                 EmblemTexture0 = p.EmblemTexture0,
                 EmblemTexture1 = p.EmblemTexture1,

@@ -14,12 +14,12 @@ public interface IPostCarnageReportService
 public class PostCarnageReportService : IPostCarnageReportService
 {
     private readonly IGameRepository gameRepository;
-    private readonly IGamerTagRepository gamerTagRepository;
+    private readonly IGamertagRepository gamerTagRepository;
     private readonly HaloStatsDbContext db;
 
     public PostCarnageReportService(
         IGameRepository gameRepository, 
-        IGamerTagRepository gamerTagRepository,
+        IGamertagRepository gamerTagRepository,
         HaloStatsDbContext db)
     {
         this.gameRepository = gameRepository;
@@ -71,12 +71,12 @@ public class PostCarnageReportService : IPostCarnageReportService
         game.CalcualtePlayerStandings();
         db.Games.Add(game);
 
-        var gamerTags = game.Players.Select(p => p.GamerTag).Distinct().ToList();
-        var nonExistingGamerTags = await gamerTagRepository.GetNonExistingGamerTags(gamerTags);
-        db.GamerTags.AddRange(nonExistingGamerTags.Select(ngt => new Database.Entities.GamerTag
+        var gamerTags = game.Players.Select(p => p.Gamertag).Distinct().ToList();
+        var nonExistingGamertags = await gamerTagRepository.GetNonExistingGamertags(gamerTags);
+        db.Gamertags.AddRange(nonExistingGamertags.Select(ngt => new Database.Entities.Gamertag
         {
             Name = ngt,
-            XboxUserId = game.Players.First(p => p.GamerTag == ngt).XboxUserId
+            XboxUserId = game.Players.First(p => p.Gamertag == ngt).XboxUserId
         }));
 
         await db.SaveChangesAsync();

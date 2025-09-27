@@ -63,16 +63,16 @@ else if (game is not null)
             <div class="stats-panel">
                 <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle">
                     <HeaderContent>
-                        <MudTh>GamerTag</MudTh>
+                        <MudTh>Gamertag</MudTh>
                         <MudTh>Score</MudTh>
                         <MudTh>Kills</MudTh>
                         <MudTh>Assists</MudTh>
                         <MudTh>Deaths</MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="GamerTag">
-                            <MudLink Color="Color.Inherit" Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")" Class="plain-link">
-                                @context.GamerTag
+                        <MudTd DataLabel="Gamertag">
+                            <MudLink Color="Color.Inherit" Href="@($"/player?gamertag={Uri.EscapeDataString(context.Gamertag)}")" Class="plain-link">
+                                @context.Gamertag
                             </MudLink>
                         </MudTd>
                         <MudTd DataLabel="Score">
@@ -103,16 +103,16 @@ else if (game is not null)
             <div class="stats-panel">
                 <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle">
                     <HeaderContent>
-                        <MudTh>GamerTag</MudTh>
+                        <MudTh>Gamertag</MudTh>
                         <MudTh>Weapon</MudTh>
                         <MudTh>Grenade</MudTh>
                         <MudTh>Melee</MudTh>
                         <MudTh>Other</MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="GamerTag">
-                            <MudLink Color="Color.Inherit" Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")" Class="plain-link">
-                                @context.GamerTag
+                        <MudTd DataLabel="Gamertag">
+                            <MudLink Color="Color.Inherit" Href="@($"/player?gamertag={Uri.EscapeDataString(context.Gamertag)}")" Class="plain-link">
+                                @context.Gamertag
                             </MudLink>
                         </MudTd>
                         <MudTd DataLabel="WeaponKills">@context.WeaponKills</MudTd>
@@ -127,16 +127,16 @@ else if (game is not null)
             <div class="stats-panel">
                 <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle">
                     <HeaderContent>
-                        <MudTh>GamerTag</MudTh>
+                        <MudTh>Gamertag</MudTh>
                         <MudTh>AverageLife</MudTh>
                         <MudTh>Spread</MudTh>
                         <MudTh>Spree</MudTh>
                         <MudTh>Medals</MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="GamerTag">
-                            <MudLink Color="Color.Inherit" Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")" Class="plain-link">
-                                @context.GamerTag
+                        <MudTd DataLabel="Gamertag">
+                            <MudLink Color="Color.Inherit" Href="@($"/player?gamertag={Uri.EscapeDataString(context.Gamertag)}")" Class="plain-link">
+                                @context.Gamertag
                             </MudLink>
                         </MudTd>
                         <MudTd DataLabel="AverageLife">@FormatAverageLife(context)</MudTd>

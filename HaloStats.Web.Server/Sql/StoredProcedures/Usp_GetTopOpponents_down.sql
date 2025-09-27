@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS Usp_GetTopOpponents(text, int, int);

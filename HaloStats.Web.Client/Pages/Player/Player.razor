@@ -1,0 +1,174 @@
+﻿@page "/player"
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@implements IDisposable
+
+@using HaloStats.Web.Shared.Contracts.Player
+@using MudBlazor
+@using System.Web
+
+<PageTitle>Player</PageTitle>
+
+<MudPaper Class="pa-4">
+    @if (gamertag != null)
+    {
+        <MudText Typo="Typo.h1">@gamertag</MudText>
+    }
+
+    @if (isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+    }
+    else if (player == null)
+    {
+        <MudText Color="Color.Error">Player not found.</MudText>
+    }
+    else
+    {
+        <PlayerSummary Summary="player.PlayerSummary" />
+        <MudDivider Class="my-4" />
+
+        <MudTabs>
+            <MudTabPanel Text="Game History">
+                @if (gamesPlayed == null || isLoadingGameHistory)
+                {
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+                }
+                else
+                {
+                    <GamesPlayedTable GamesPlayed="gamesPlayed"
+                                      OnNextPage="NextPage"
+                                      OnPreviousPage="PreviousPage" />
+                }
+            </MudTabPanel>
+            <MudTabPanel Text="Top Teammates">
+                <TopTeammates Data="player.TopTeammates" Title="Top Teammates By Games Played Together" />
+                <TopTeammates Data="player.TopTeammatesByWins" Title="Top Teammates By Wins" />
+            </MudTabPanel>
+            <MudTabPanel Text="Top Opponents">
+                <TopOpponents Data="player.TopOpponents" />
+            </MudTabPanel>
+        </MudTabs>
+        
+        <MudDivider Class="my-4" />
+    }
+</MudPaper>
+
+@code {
+    private string? gamertag;
+    private GetPlayerResponse? player;
+    private GetPlayerGamesResponse? gamesPlayed;
+    private bool isLoading = true;
+    private int currentPage = 1;
+    private const int pageSize = 1;
+    private bool isLoadingGameHistory = true;
+    private string? lastGamertag;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        await LoadFromQueryAsync();
+
+        // var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        // var query = HttpUtility.ParseQueryString(uri.Query);
+        // var tag = query.Get("gamertag");
+        // if (!string.IsNullOrEmpty(tag))
+        // {
+        //     gamertag = tag;
+        //     await LoadPlayer();
+        // }
+        // else
+        // {
+        //     isLoading = false;
+        // }
+    }
+
+    private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        var uri = Navigation.ToAbsoluteUri(e.Location);
+        var query = HttpUtility.ParseQueryString(uri.Query);
+        var tag = query.Get("gamertag");
+
+        if (tag != lastGamertag)
+        {
+            gamertag = tag;
+            await LoadFromQueryAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadFromQueryAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query);
+        var tag = query.Get("gamertag");
+        lastGamertag = tag;
+
+        if (!string.IsNullOrEmpty(tag))
+        {
+            gamertag = tag;
+            await LoadPlayer();
+        }
+        else
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadPlayer()
+    {
+        isLoading = true;
+        try
+        {
+            var response = await Http.GetFromJsonAsync<GetPlayerResponse>($"/api/player/{gamertag}");
+            player = response;
+            gamesPlayed = response?.GamesPlayed;
+        }
+        catch
+        {
+            player = null;
+        }
+        isLoading = false;
+        isLoadingGameHistory = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadGameHistory()
+    {
+        isLoadingGameHistory = true;
+        try
+        {
+            var response = await Http.GetFromJsonAsync<GetPlayerGamesResponse>($"/api/player/{gamertag}/games?pageNumber={currentPage}&pageSize={pageSize}");
+            gamesPlayed = response;
+        }
+        catch
+        {
+            gamesPlayed = null;
+        }
+        isLoadingGameHistory = false;
+        StateHasChanged();
+    }
+
+    private async Task NextPage()
+    {
+        if (gamesPlayed?.IsNextPage == true)
+        {
+            currentPage++;
+            await LoadGameHistory();
+        }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (gamesPlayed?.PageNumber > 1)
+        {
+            currentPage--;
+            await LoadGameHistory();
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

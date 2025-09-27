@@ -26,7 +26,7 @@ public static class PostCarnageReportRequestMapper
                 XboxUserId = p.XboxUserId,
                 IsGuest = p.IsGuest,
                 GameMode = p.GameMode,
-                GamerTag = p.GamerTag,
+                Gamertag = p.Gamertag,
                 ClanTag = p.ClanTag,
                 EmblemTexture0 = p.EmblemTexture0,
                 EmblemTexture1 = p.EmblemTexture1,

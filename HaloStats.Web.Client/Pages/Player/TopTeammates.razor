@@ -1,0 +1,37 @@
+﻿@using HaloStats.Web.Shared.Contracts.Player
+@using MudBlazor
+
+
+@if (Data == null || Data.Teammates == null || Data.Teammates.Count == 0)
+{
+    <MudText>No data available.</MudText>
+    return;
+}
+<MudText Typo="Typo.h6" Class="mt-4">@Title</MudText>
+<MudTable Items="Data.Teammates">
+    <HeaderContent>
+        <MudTh>Rank</MudTh>
+        <MudTh>Gamertag</MudTh>
+        <MudTh>Games Played Together</MudTh>
+        <MudTh>Wins Together</MudTh>
+        <MudTh>Losses Together</MudTh>
+        <MudTh>Win Rate</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Rank">@context.Rank</MudTd>
+        <MudTd DataLabel="Gamertag">
+            <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.TeammateGamertag)}")">
+                @context.TeammateGamertag
+            </MudLink>
+        </MudTd>
+        <MudTd DataLabel="Games Played Together">@context.GamesPlayedTogether</MudTd>
+        <MudTd DataLabel="Wins Together">@context.WinsTogether</MudTd>
+        <MudTd DataLabel="Losses Together">@context.LossesTogether</MudTd>
+        <MudTd DataLabel="Win Rate">@context.WinRate.ToString("P1")</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    [Parameter] public HaloStats.Web.Shared.Contracts.Shared.TopTeammates? Data { get; set; }
+    [Parameter] public required string Title { get; set; }
+}

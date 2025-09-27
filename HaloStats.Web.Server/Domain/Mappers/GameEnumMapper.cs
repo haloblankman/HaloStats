@@ -5,7 +5,7 @@ namespace HaloStats.Web.Server.Domain.Mappers;
 
 public static class GameEnumMapper
 {
-    public static GameEnum MapToGameEnum(this HaloGames game)
+    public static GameEnum? MapToGameEnum(this HaloGames game)
     {
         return game switch
         {
@@ -16,7 +16,8 @@ public static class GameEnumMapper
             HaloGames.Halo3Odst => GameEnum.Halo3Odst,
             HaloGames.Halo4 => GameEnum.Halo4,
             HaloGames.HaloReach => GameEnum.HaloReach,
-            _ => throw new ArgumentOutOfRangeException(nameof(game), game, null)
+            HaloGames.HaloMccAll => null,
+            _ => null
         };
     }
 

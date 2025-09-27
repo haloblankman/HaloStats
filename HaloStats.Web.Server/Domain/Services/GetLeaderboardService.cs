@@ -22,8 +22,8 @@ public class GetLeaderboardService : IGetLeaderboardService
     {
         var topPlayersByKillCount = await gameAnalyticsRepo.GetTopPlayersByKillCount(game);
         var topPlayersByKillCountThisMonth = await gameAnalyticsRepo.GetTopPlayersByKillCountThisMonth(game);
-        var topTeammatePairs = await gameAnalyticsRepo.GetTopTeammatePairs(game);
-        var topTeammatePairsByWins = await gameAnalyticsRepo.GetTopTeammatePairsByWins(game);
+        var topTeammatePairs = await gameAnalyticsRepo.GetTopTeammatePairs(null, game);
+        var topTeammatePairsByWins = await gameAnalyticsRepo.GetTopTeammatePairsByWins(null, game);
 
         return new GetLeaderboardResponse
         {

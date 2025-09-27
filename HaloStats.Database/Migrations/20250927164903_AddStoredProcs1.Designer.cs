@@ -3,6 +3,7 @@ using System;
 using HaloStats.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HaloStats.Database.Migrations
 {
     [DbContext(typeof(HaloStatsDbContext))]
-    partial class HaloStatsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250927164903_AddStoredProcs1")]
+    partial class AddStoredProcs1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -130,7 +133,7 @@ namespace HaloStats.Database.Migrations
                     b.Property<int>("GameMode")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Gamertag")
+                    b.Property<string>("GamerTag")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -215,7 +218,7 @@ namespace HaloStats.Database.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.HasIndex("Gamertag");
+                    b.HasIndex("GamerTag");
 
                     b.ToTable("GamePlayers");
                 });
@@ -266,9 +269,9 @@ namespace HaloStats.Database.Migrations
                     b.ToTable("GamePlayerMedals");
                 });
 
-            modelBuilder.Entity("HaloStats.Database.Entities.Gamertag", b =>
+            modelBuilder.Entity("HaloStats.Database.Entities.GamerTag", b =>
                 {
-                    b.Property<Guid>("GamertagId")
+                    b.Property<Guid>("GamerTagId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -283,61 +286,11 @@ namespace HaloStats.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("GamertagId");
+                    b.HasKey("GamerTagId");
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Gamertags");
-                });
-
-            modelBuilder.Entity("HaloStats.Database.Entities.StoredProcs.Usp_GetTopOpponentPairs", b =>
-                {
-                    b.Property<int>("GamesPlayedAgainst")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("LossesAgainst")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("OpponentGamertag")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("WinRate")
-                        .HasColumnType("numeric");
-
-                    b.Property<int>("WinsAgainst")
-                        .HasColumnType("integer");
-
-                    b.ToTable((string)null);
-
-                    b.ToView(null, (string)null);
-                });
-
-            modelBuilder.Entity("HaloStats.Database.Entities.StoredProcs.Usp_GetTopTeammatePairs", b =>
-                {
-                    b.Property<int>("GamesPlayedTogether")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("LossesTogether")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("PlayerOneGamertag")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PlayerTwoGamertag")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("WinRate")
-                        .HasColumnType("numeric");
-
-                    b.Property<int>("WinsTogether")
-                        .HasColumnType("integer");
-
-                    b.ToTable((string)null);
-
-                    b.ToView(null, (string)null);
+                    b.ToTable("GamerTags");
                 });
 
             modelBuilder.Entity("HaloStats.Database.Entities.GamePlayer", b =>

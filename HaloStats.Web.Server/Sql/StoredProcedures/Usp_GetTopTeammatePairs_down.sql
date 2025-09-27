@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS Usp_GetTopTeammatePairs(text, int, int);

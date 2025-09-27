@@ -21,15 +21,15 @@ else if (leaderboard is not null)
     <MudTable Items="leaderboard.TopPlayersByKillCount.Players" Dense="true">
         <HeaderContent>
             <MudTh>Rank</MudTh>
-            <MudTh>GamerTag</MudTh>
+            <MudTh>Gamertag</MudTh>
             <MudTh>Kills</MudTh>
             <MudTh>KDR</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Rank">@context.Rank</MudTd>
-            <MudTd DataLabel="GamerTag">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")">
-                    @context.GamerTag
+            <MudTd DataLabel="Gamertag">
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.Gamertag)}")">
+                    @context.Gamertag
                 </MudLink>
             </MudTd>
             <MudTd DataLabel="Kills">@context.Kills</MudTd>
@@ -41,15 +41,15 @@ else if (leaderboard is not null)
     <MudTable Items="leaderboard.TopPlayersByKillCountThisMonth.Players" Dense="true">
         <HeaderContent>
             <MudTh>Rank</MudTh>
-            <MudTh>GamerTag</MudTh>
+            <MudTh>Gamertag</MudTh>
             <MudTh>Kills</MudTh>
             <MudTh>KDR</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Rank">@context.Rank</MudTd>
-            <MudTd DataLabel="GamerTag">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.GamerTag)}")">
-                    @context.GamerTag
+            <MudTd DataLabel="Gamertag">
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.Gamertag)}")">
+                    @context.Gamertag
                 </MudLink>
             </MudTd>
             <MudTd DataLabel="Kills">@context.Kills</MudTd>
@@ -71,13 +71,13 @@ else if (leaderboard is not null)
         <RowTemplate>
             <MudTd DataLabel="Rank">@context.Rank</MudTd>
             <MudTd DataLabel="Player 1">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamerTag)}")">
-                    @context.PlayerOneGamerTag
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamertag)}")">
+                    @context.PlayerOneGamertag
                 </MudLink>
             </MudTd>
             <MudTd DataLabel="Player 2">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamerTag)}")">
-                    @context.PlayerTwoGamerTag
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamertag)}")">
+                    @context.PlayerTwoGamertag
                 </MudLink>
             </MudTd>
             <MudTd DataLabel="Games Played">@context.GamesPlayedTogether</MudTd>
@@ -101,13 +101,13 @@ else if (leaderboard is not null)
         <RowTemplate>
             <MudTd DataLabel="Rank">@context.Rank</MudTd>
             <MudTd DataLabel="Player 1">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamerTag)}")">
-                    @context.PlayerOneGamerTag
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamertag)}")">
+                    @context.PlayerOneGamertag
                 </MudLink>
             </MudTd>
             <MudTd DataLabel="Player 2">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamerTag)}")">
-                    @context.PlayerTwoGamerTag
+                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamertag)}")">
+                    @context.PlayerTwoGamertag
                 </MudLink>
             </MudTd>
             <MudTd DataLabel="Games Played">@context.GamesPlayedTogether</MudTd>
@@ -139,7 +139,6 @@ else if (leaderboard is not null)
             GameDisplay = LeaderboardRouteMapper.MapGameEnumToDescription(gameEnum.Value);
             gameToLoad = gameEnum.Value;
         }
-        await LoadLeaderboard(gameToLoad);
         StateHasChanged();
     }
 

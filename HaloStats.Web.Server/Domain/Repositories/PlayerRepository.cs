@@ -7,7 +7,7 @@ namespace HaloStats.Web.Server.Domain.Repositories;
 public interface IPlayerRepository
 {
     Task<PlayerSummary> GetPlayerSummary(string gamerTag);
-    Task<GamesPlayed> GetPlayerGameHistory(string gamerTag, int pageNumber, int pageSize);
+    Task<GetPlayerGamesResponse> GetPlayerGameHistory(string gamerTag, GetPlayerGamesRequest request);
 }
 
 public class PlayerRepository : IPlayerRepository
@@ -25,8 +25,8 @@ public class PlayerRepository : IPlayerRepository
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => gp)
-            .Where(gp => gp.GamerTag == gamerTag)
-            .GroupBy(gp => gp.GamerTag)
+            .Where(gp => gp.Gamertag == gamerTag)
+            .GroupBy(gp => gp.Gamertag)
             .Select(g => new
             {
                 GamesPlayed = g.Count(),
@@ -60,14 +60,28 @@ public class PlayerRepository : IPlayerRepository
         };
     }
 
-    public async Task<GamesPlayed> GetPlayerGameHistory(string gamerTag, int pageNumber, int pageSize)
+    public async Task<GetPlayerGamesResponse> GetPlayerGameHistory(string gamerTag, GetPlayerGamesRequest request)
     {
-        var gamesPlayed = await db.GamePlayers
+        int pageNumber = request.PageNumber ?? 1;
+        int pageSize = request.PageSize ?? 50;
+
+        var query = db.GamePlayers
             .Join(db.Games.Where(g => !g.IsDuplicateGame && !g.IsDeleted),
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => new { gp, g })
-            .Where(g => g.gp.GamerTag == gamerTag)
+            .Where(g => g.gp.Gamertag == gamerTag);
+
+        var filterGamertag = request.Filters?.Gamertag;
+        if (!string.IsNullOrWhiteSpace(filterGamertag))
+        {
+            query = query.Where(x =>
+                db.GamePlayers.Any(gp2 =>
+                    gp2.GameId == x.gp.GameId &&
+                    gp2.Gamertag == filterGamertag));
+        }
+
+        var gamesPlayed = await query
             .OrderByDescending(x => x.g.ReportedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize + 1)
@@ -84,7 +98,7 @@ public class PlayerRepository : IPlayerRepository
             }).ToListAsync();
 
 
-        return new GamesPlayed
+        return new GetPlayerGamesResponse
         {
             Games = gamesPlayed.Take(pageSize).ToList(),
             PageNumber = pageNumber,

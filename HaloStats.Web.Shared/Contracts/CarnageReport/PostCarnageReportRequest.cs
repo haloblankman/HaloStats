@@ -20,7 +20,7 @@ public class GamePlayerInfo
     public string XboxUserId { get; set; }
     public bool IsGuest { get; set; }
     public int GameMode { get; set; }
-    public string GamerTag { get; set; }
+    public string Gamertag { get; set; }
     public string ClanTag { get; set; }
     public int EmblemTexture0 { get; set; }
     public int EmblemTexture1 { get; set; }

@@ -11,7 +11,7 @@ public class GamePlayer
     public bool IsWinner { get; set; }
     public int Place { get; set; }
     public required int GameMode { get; set; }
-    public required string GamerTag { get; set; }
+    public required string Gamertag { get; set; }
     public required string ClanTag { get; set; }
     public required int EmblemTexture0 { get; set; }
     public required int EmblemTexture1 { get; set; }

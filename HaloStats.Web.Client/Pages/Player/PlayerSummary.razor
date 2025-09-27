@@ -1,0 +1,19 @@
+﻿@using HaloStats.Web.Shared.Contracts.Player
+@using MudBlazor
+
+@if (Summary != null)
+{
+    <MudText>GamesPlayedCount: @Summary.GamesPlayedCount</MudText>
+    <MudText>TotalWins: @Summary.TotalWins</MudText>
+    <MudText>TotalKills: @Summary.TotalKills</MudText>
+    <MudText>TotalAssists: @Summary.TotalAssists</MudText>
+    <MudText>TotalDeaths: @Summary.TotalDeaths</MudText>
+    <MudText>WinPercentage: @Summary.WinPercentage.ToString("P1")</MudText>
+    <MudText>KillDeathRatio: @Summary.KillDeathRatio.ToString("0.00")</MudText>
+    <MudText>KillAssistDeathRatio: @Summary.KillAssistDeathRatio.ToString("0.00")</MudText>
+}
+
+@code {
+    [Parameter]
+    public HaloStats.Web.Shared.Contracts.Player.PlayerSummary? Summary { get; set; }
+}

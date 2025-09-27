@@ -4,32 +4,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HaloStats.Web.Server.Domain.Repositories;
 
-public interface IGamerTagRepository
+public interface IGamertagRepository
 {
-    Task<List<GamerTag>> GetAllGamerTags();
-    Task<List<string>> GetNonExistingGamerTags(List<string> gamerTags);
+    Task<List<Gamertag>> GetAllGamertags();
+    Task<List<string>> GetNonExistingGamertags(List<string> gamerTags);
 }
 
-public class GamerTagRepository : IGamerTagRepository
+public class GamertagRepository : IGamertagRepository
 {
     private readonly HaloStatsDbContext db;
-    public GamerTagRepository(HaloStatsDbContext db)
+    public GamertagRepository(HaloStatsDbContext db)
     {
         this.db = db;
     }
 
-    public Task<List<GamerTag>> GetAllGamerTags()
+    public Task<List<Gamertag>> GetAllGamertags()
     {
-        return db.GamerTags.ToListAsync();
+        return db.Gamertags.ToListAsync();
     }
 
-    public async Task<List<string>> GetNonExistingGamerTags(List<string> gamerTags)
+    public async Task<List<string>> GetNonExistingGamertags(List<string> gamertags)
     {
-        var existing = await db.GamerTags
-            .Where(gt => gamerTags.Contains(gt.Name))
+        var existing = await db.Gamertags
+            .Where(gt => gamertags.Contains(gt.Name))
             .Select(gt => gt.Name)
             .ToListAsync();
 
-        return gamerTags.Except(existing).ToList();
+        return gamertags.Except(existing).ToList();
     }
 }

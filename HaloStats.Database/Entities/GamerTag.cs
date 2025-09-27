@@ -1,15 +1,15 @@
 ﻿namespace HaloStats.Database.Entities;
 
-public class GamerTag
+public class Gamertag
 {
-    public Guid GamerTagId { get; set; }
+    public Guid GamertagId { get; set; }
     public required string Name { get; set; }
     public required string XboxUserId { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    public GamerTag()
+    public Gamertag()
     {
-        GamerTagId = UUIDNext.Uuid.NewDatabaseFriendly(UUIDNext.Database.PostgreSql);
+        GamertagId = UUIDNext.Uuid.NewDatabaseFriendly(UUIDNext.Database.PostgreSql);
         CreatedAt = DateTime.UtcNow;
     }   
 }
