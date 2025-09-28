@@ -1,4 +1,5 @@
-﻿@page "/player"
+﻿@using HaloStats.Web.Shared.Constants;
+@page "/player"
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @implements IDisposable
@@ -9,50 +10,51 @@
 
 <PageTitle>Player</PageTitle>
 
-<MudPaper Class="pa-4">
-    @if (gamertag != null)
-    {
-        <MudText Typo="Typo.h1">@gamertag</MudText>
-    }
+@if (gamertag != null)
+{
+    <MudText Typo="Typo.h3">@gamertag</MudText>
+}
 
-    @if (isLoading)
-    {
-        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
-    }
-    else if (player == null)
-    {
-        <MudText Color="Color.Error">Player not found.</MudText>
-    }
-    else
-    {
-        <PlayerSummary Summary="player.PlayerSummary" />
-        <MudDivider Class="my-4" />
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+}
+else if (player == null)
+{
+    <MudText Color="Color.Error">Player not found.</MudText>
+}
+else
+{
+    <PlayerSummary Summary="player.PlayerSummary" />
+    <MudDivider Class="my-4" />
 
-        <MudTabs>
-            <MudTabPanel Text="Game History">
-                @if (gamesPlayed == null || isLoadingGameHistory)
-                {
-                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
-                }
-                else
-                {
-                    <GamesPlayedTable GamesPlayed="gamesPlayed"
-                                      OnNextPage="NextPage"
-                                      OnPreviousPage="PreviousPage" />
-                }
-            </MudTabPanel>
-            <MudTabPanel Text="Top Teammates">
-                <TopTeammates Data="player.TopTeammates" Title="Top Teammates By Games Played Together" />
-                <TopTeammates Data="player.TopTeammatesByWins" Title="Top Teammates By Wins" />
-            </MudTabPanel>
-            <MudTabPanel Text="Top Opponents">
-                <TopOpponents Data="player.TopOpponents" />
-            </MudTabPanel>
-        </MudTabs>
+    <MudTabs>
+        <MudTabPanel Text="Game History">
+            @if (gamesPlayed == null || isLoadingGameHistory)
+            {
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+            }
+            else
+            {
+                <GamesPlayedTable GamesPlayed="gamesPlayed"
+                    OnNextPage="NextPage"
+                    OnPreviousPage="PreviousPage"
+                    @bind-FilterByGamertag="filterByGamertag"
+                    Gamertags="playedWithGamertags"
+                    GamertagSearch="@GamertagSearch" />
+            }
+        </MudTabPanel>
+        <MudTabPanel Text="Top Teammates">
+            <TopTeammates Data="player.TopTeammates" Title="Top Teammates By Games Played Together" />
+            <TopTeammates Data="player.TopTeammatesByWins" Title="Top Teammates By Wins" />
+        </MudTabPanel>
+        <MudTabPanel Text="Top Opponents">
+            <TopOpponents Data="player.TopOpponents" />
+        </MudTabPanel>
+    </MudTabs>
         
-        <MudDivider Class="my-4" />
-    }
-</MudPaper>
+    <MudDivider Class="my-4" />
+}
 
 @code {
     private string? gamertag;
@@ -60,27 +62,17 @@
     private GetPlayerGamesResponse? gamesPlayed;
     private bool isLoading = true;
     private int currentPage = 1;
-    private const int pageSize = 1;
+    private const int pageSize = PageSettings.DefaultPlayerGamesPageSize;
     private bool isLoadingGameHistory = true;
     private string? lastGamertag;
+    private string? lastFilterByGamertag;
+    private List<string> playedWithGamertags { get; set; } = new();
+    private string? filterByGamertag;
 
     protected override async Task OnInitializedAsync()
     {
         Navigation.LocationChanged += OnLocationChanged;
         await LoadFromQueryAsync();
-
-        // var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
-        // var query = HttpUtility.ParseQueryString(uri.Query);
-        // var tag = query.Get("gamertag");
-        // if (!string.IsNullOrEmpty(tag))
-        // {
-        //     gamertag = tag;
-        //     await LoadPlayer();
-        // }
-        // else
-        // {
-        //     isLoading = false;
-        // }
     }
 
     private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
@@ -88,10 +80,12 @@
         var uri = Navigation.ToAbsoluteUri(e.Location);
         var query = HttpUtility.ParseQueryString(uri.Query);
         var tag = query.Get("gamertag");
+        var filter = query.Get("gamesPlayedWith");
 
-        if (tag != lastGamertag)
+        if (tag != lastGamertag || filter != lastFilterByGamertag)
         {
             gamertag = tag;
+            filterByGamertag = filter;
             await LoadFromQueryAsync();
             StateHasChanged();
         }
@@ -102,12 +96,16 @@
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
         var query = HttpUtility.ParseQueryString(uri.Query);
         var tag = query.Get("gamertag");
+        var filter = query.Get("gamesPlayedWith");
         lastGamertag = tag;
+        lastFilterByGamertag = filter;
 
         if (!string.IsNullOrEmpty(tag))
         {
             gamertag = tag;
+            filterByGamertag = filter;
             await LoadPlayer();
+            await LoadGamertags();
         }
         else
         {
@@ -120,7 +118,13 @@
         isLoading = true;
         try
         {
-            var response = await Http.GetFromJsonAsync<GetPlayerResponse>($"/api/player/{gamertag}");
+            var url = $"/api/player/{gamertag}";
+            if (!string.IsNullOrEmpty(filterByGamertag))
+            {
+                url += $"?gamesPlayedWith={Uri.EscapeDataString(filterByGamertag)}";
+            }
+
+            var response = await Http.GetFromJsonAsync<GetPlayerResponse>(url);
             player = response;
             gamesPlayed = response?.GamesPlayed;
         }
@@ -133,12 +137,54 @@
         StateHasChanged();
     }
 
+    private async Task GamertagSearch()
+    {
+        currentPage = 1;
+
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        // Set or update the filterByGamertag parameter
+        if (!string.IsNullOrEmpty(filterByGamertag))
+            query.Set("gamesPlayedWith", filterByGamertag);
+        else
+            query.Remove("gamesPlayedWith");
+
+        // Always preserve the gamertag parameter
+        if (!string.IsNullOrEmpty(gamertag))
+            query.Set("gamertag", gamertag);
+
+        // Build the new URI
+        var newUri = $"{uri.AbsolutePath}?{query}";
+        Navigation.NavigateTo(newUri, forceLoad: false);
+
+        await LoadGameHistory();
+    }
+
+    private async Task LoadGamertags()
+    {
+        try
+        {
+            playedWithGamertags = await Http.GetFromJsonAsync<List<string>>($"/api/player/{gamertag}/games/played-with-gamertags") ?? new List<string>();
+        }
+        catch
+        {
+            playedWithGamertags = new List<string>();
+        }
+    }
+
     private async Task LoadGameHistory()
     {
         isLoadingGameHistory = true;
         try
         {
-            var response = await Http.GetFromJsonAsync<GetPlayerGamesResponse>($"/api/player/{gamertag}/games?pageNumber={currentPage}&pageSize={pageSize}");
+            var url = $"/api/player/{gamertag}/games?pageNumber={currentPage}&pageSize={pageSize}";
+            if (!string.IsNullOrEmpty(filterByGamertag))
+            {
+                url += $"&filterGamertag={Uri.EscapeDataString(filterByGamertag)}";
+            }
+
+            var response = await Http.GetFromJsonAsync<GetPlayerGamesResponse>(url);
             gamesPlayed = response;
         }
         catch
@@ -146,7 +192,6 @@
             gamesPlayed = null;
         }
         isLoadingGameHistory = false;
-        StateHasChanged();
     }
 
     private async Task NextPage()

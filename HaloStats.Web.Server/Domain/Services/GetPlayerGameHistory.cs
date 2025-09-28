@@ -6,6 +6,7 @@ namespace HaloStats.Web.Server.Domain.Services
     public interface IGetPlayerGameHistory
     {
         Task<GetPlayerGamesResponse> GetGamesPlayed(string gamerTag, GetPlayerGamesRequest request);
+        Task<List<string>> GetGamertagsThatPlayedWith(string gamertag);
     }
 
     public class GetPlayerGameHistory : IGetPlayerGameHistory
@@ -21,6 +22,12 @@ namespace HaloStats.Web.Server.Domain.Services
         {
             var gameHistory = await playerRepo.GetPlayerGameHistory(gamerTag, request);
             return gameHistory;
+        }
+
+        public async Task<List<string>> GetGamertagsThatPlayedWith(string gamertag)
+        {
+            var gamertags = await playerRepo.GetGamertagsThatPlayedWith(gamertag);
+            return gamertags;
         }
     }
 }

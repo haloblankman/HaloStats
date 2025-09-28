@@ -19,9 +19,9 @@ namespace HaloStats.Web.Server.Controllers
 
 
         [HttpGet("{gamertag}")]
-        public async Task<IActionResult> GetPlayer(string gamertag)
+        public async Task<IActionResult> GetPlayer(string gamertag, [FromQuery] string? gamesPlayedWith)
         {
-            var playerSummary = await getPlayerService.GetPlayer(gamertag);
+            var playerSummary = await getPlayerService.GetPlayer(gamertag, gamesPlayedWith);
             if (playerSummary == null)
             {
                 return NotFound();
@@ -34,6 +34,13 @@ namespace HaloStats.Web.Server.Controllers
         {
             var gamesPlayed = await getPlayerGameHistory.GetGamesPlayed(gamertag, request);
             return Ok(gamesPlayed);
+        }
+
+        [HttpGet("{gamertag}/games/played-with-gamertags")]
+        public async Task<IActionResult> GamertagsPlayedWith(string gamertag)
+        {
+            var gamertags = await getPlayerGameHistory.GetGamertagsThatPlayedWith(gamertag);
+            return Ok(gamertags);
         }
     }
 }

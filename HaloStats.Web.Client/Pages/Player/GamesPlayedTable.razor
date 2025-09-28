@@ -7,6 +7,19 @@
 }
 else
 {
+    <MudPaper Class="pa-4 mt-4" Elevation="3">
+        <MudStack Row="true" Spacing="3">
+            <MudAutocomplete T="string" Label="Find Games with.." Value="FilterByGamertag" ValueChanged="OnFilterByGamertagChanged" SearchFunc="@Search"
+                             ResetValueOnEmptyText="true"
+                             CoerceText="true" SelectValueOnTab="true" />
+            <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Send" Color="Color.Primary" OnClick="@GamertagSearch" Style="min-width:120px;">
+                Filter
+            </MudButton>
+            <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Clear" Color="Color.Secondary" OnClick="@ClearFilter" Style="min-width:120px;">
+                Clear
+            </MudButton>
+        </MudStack>
+    </MudPaper>
     <MudText Typo="Typo.h6">Game History (Page @GamesPlayed.PageNumber)</MudText>
     <MudTable Items="GamesPlayed.Games">
         <HeaderContent>
@@ -48,7 +61,30 @@ else
     [Parameter] public GetPlayerGamesResponse? GamesPlayed { get; set; }
     [Parameter] public EventCallback OnNextPage { get; set; }
     [Parameter] public EventCallback OnPreviousPage { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> GamertagSearch { get; set; }
+    [Parameter] public List<string> Gamertags { get; set; } = new();
+    [Parameter] public string? FilterByGamertag { get; set; }
+    [Parameter] public EventCallback<string?> FilterByGamertagChanged { get; set; }
+
+    private async Task OnFilterByGamertagChanged(string newValue)
+    {
+        FilterByGamertag = newValue;
+        await FilterByGamertagChanged.InvokeAsync(newValue);
+    }
 
     private async Task NextPage() => await OnNextPage.InvokeAsync();
     private async Task PreviousPage() => await OnPreviousPage.InvokeAsync();
+
+    private async Task<IEnumerable<string>?> Search(string? value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(value))
+            return Gamertags;
+        return Gamertags.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async void ClearFilter()
+    {
+        FilterByGamertag = null;
+        await FilterByGamertagChanged.InvokeAsync(null);
+    }
 }
