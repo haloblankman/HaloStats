@@ -61,7 +61,7 @@ else if (game is not null)
         <div class="stats-slider-inner" style="@($"transform:translateX(-{(pcrPage - 1) * 100}%);")">
             <!-- Table 1: Core Scoreboard -->
             <div class="stats-panel">
-                <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle">
+                <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle" Breakpoint="Breakpoint.None" HorizontalScrollbar="true">
                     <HeaderContent>
                         <MudTh>Gamertag</MudTh>
                         <MudTh>Score</MudTh>
@@ -101,7 +101,7 @@ else if (game is not null)
 
             <!-- Table 2: Kill Types -->
             <div class="stats-panel">
-                <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle">
+                <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle" Breakpoint="Breakpoint.None" HorizontalScrollbar="true">
                     <HeaderContent>
                         <MudTh>Gamertag</MudTh>
                         <MudTh>Weapon</MudTh>
@@ -125,7 +125,7 @@ else if (game is not null)
 
             <!-- Table 3: Survivability / Other -->
             <div class="stats-panel">
-                <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle">
+                <MudTable Elevation="0" Items="game.GamePlayers" RowStyleFunc="RowStyle" Breakpoint="Breakpoint.None" HorizontalScrollbar="true">
                     <HeaderContent>
                         <MudTh>Gamertag</MudTh>
                         <MudTh>AverageLife</MudTh>
@@ -273,5 +273,9 @@ else
         font-size: 1rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
+    }
+
+    @@media (max-width: 599.95px){
+        .mud-table-cell { padding: 2px; }
     }
 </style>

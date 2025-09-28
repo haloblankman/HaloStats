@@ -9,9 +9,16 @@ else
 {
     <MudPaper Class="pa-4 mt-4" Elevation="3">
         <MudStack Row="true" Spacing="3">
-            <MudAutocomplete T="string" Label="Find Games with.." Value="FilterByGamertag" ValueChanged="OnFilterByGamertagChanged" SearchFunc="@Search"
-                             ResetValueOnEmptyText="true"
-                             CoerceText="true" SelectValueOnTab="true" />
+            <MudAutocomplete T="string" 
+                Label="Find Games with.." 
+                Value="FilterByGamertag" 
+                ValueChanged="OnFilterByGamertagChanged" 
+                SearchFunc="@Search"
+                ResetValueOnEmptyText="true"
+                CoerceText="true" 
+                SelectValueOnTab="true" 
+                FullWidth="false"
+                MaxItems="100"/>
             <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Send" Color="Color.Primary" OnClick="@GamertagSearch" Style="min-width:120px;">
                 Filter
             </MudButton>
@@ -32,7 +39,9 @@ else
             <MudTh>Is Matchmaking</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Date">@context.ReportedAt.ToString("g")</MudTd>
+            <MudTd DataLabel="Date">
+                <LocalDate UtcDate="@context.ReportedAt" />
+            </MudTd>
             <MudTd DataLabel="Game Type Name">
                 <MudLink Href="@($"/game/{Uri.EscapeDataString(context.GameId.ToString())}")">
                     @context.GameTypeName
@@ -86,5 +95,6 @@ else
     {
         FilterByGamertag = null;
         await FilterByGamertagChanged.InvokeAsync(null);
+        await GamertagSearch.InvokeAsync(null);
     }
 }

@@ -48,6 +48,7 @@ internal static class DashboardMapper
                         IsWinner = t.Score == maxScore,
                         Score = t.Score
                     })
+                    .OrderByDescending(t => t.Score)
                     .ToList();
             }
             else

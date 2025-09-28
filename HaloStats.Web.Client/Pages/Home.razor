@@ -2,6 +2,7 @@
 
 @using HaloStats.Web.Shared.Contracts.Dashboard
 @using HaloStats.Web.Shared.Enums
+@using HaloStats.Web.Client.Infrastructure.Extensions
 @inject HttpClient Http
 
 <PageTitle>Halo PCRS</PageTitle>
@@ -49,7 +50,7 @@
             }
             else
             {
-                <MudTable Items="dashboard.RecentGames" Dense="true">
+                <MudTable Items="dashboard.RecentGames" Dense="true" Breakpoint="Breakpoint.None" HorizontalScrollbar="true">
                     <HeaderContent>
                         <MudTh>Game</MudTh>
                         <MudTh>Game Type</MudTh>
@@ -61,7 +62,36 @@
                         </MudTd>
                         <MudTd DataLabel="Game Type">@context.GameType</MudTd>
                         <MudTd DataLabel="Players">
-                            @FormatPlayersColumn(context)
+                            @if (context.IsTeamGame)
+                            {
+                                foreach (var team in context.Teams!)
+                                {
+                                    <div class="team-and-score">
+                                        <span>@team.TeamId.ToColor() (@team.Score) </span> 
+                                        @foreach (var gamertag in team.Gamertags)
+                                        {
+                                            <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(gamertag)}")">@gamertag</MudLink><span>, </span>
+                                        }
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                foreach (var gamertag in context.NonTeamGame!.Gamertags)
+                                {
+                                    if (string.Equals(gamertag, context.NonTeamGame.WinnerGamertag, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <b>
+                                            <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(gamertag)}")">@gamertag</MudLink> (@context.NonTeamGame.Score)<span>, </span>
+                                        </b>
+                                    }
+                                    else
+                                    {
+                                        <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(gamertag)}")">@gamertag</MudLink><span>, </span>
+                                    }
+                                    
+                                }
+                            }
                         </MudTd>
                     </RowTemplate>
                 </MudTable>
@@ -77,72 +107,4 @@
     {
         dashboard = await Http.GetFromJsonAsync<DashboardResponse>("/api/dashboard");
     }
-
-    private RenderFragment FormatPlayersColumn(RecentGame game) => builder =>
-    {
-        if (game.IsTeamGame)
-        {
-            // Sort teams by score descending (winner first)
-            var teams = game.Teams!.OrderByDescending(t => t.Score).ToList();
-            for (int i = 0; i < teams.Count; i++)
-            {
-                var team = teams[i];
-                var teamColor = ((HaloTeamColors)team.TeamId).ToString();
-                builder.OpenElement(0, "span");
-                builder.AddContent(1, $"{teamColor} Team: ");
-                builder.AddContent(2, $" ({team.Score})");
-                builder.CloseElement();
-
-                for (int j = 0; j < team.Gamertags.Count; j++)
-                {
-                    var gamerTag = team.Gamertags[j];
-                    builder.OpenComponent<MudLink>(3);
-                    builder.AddAttribute(4, "Href", $"/player?gamertag={Uri.EscapeDataString(gamerTag)}");
-                    builder.AddAttribute(5, "ChildContent", (RenderFragment)(childBuilder =>
-                    {
-                        childBuilder.AddContent(6, gamerTag);
-                    }));
-                    builder.CloseComponent();
-
-                    if (j < team.Gamertags.Count - 1)
-                        builder.AddContent(7, ", ");
-                }
-                
-                if (i < teams.Count - 1)
-                {
-                    builder.OpenElement(8, "br");
-                    builder.CloseElement();
-                }
-            }
-        }
-        else
-        {
-            var gamerTags = game.NonTeamGame!.Gamertags.ToList();
-            for (int i = 0; i < gamerTags.Count; i++)
-            {
-                var gamerTag = gamerTags[i];
-                bool isWinner = string.Equals(gamerTag, game.NonTeamGame.WinnerGamertag, StringComparison.OrdinalIgnoreCase);
-
-                if (isWinner)
-                    builder.OpenElement(8, "b");
-
-                builder.OpenComponent<MudLink>(9);
-                builder.AddAttribute(10, "Href", $"/player?gamertag={Uri.EscapeDataString(gamerTag)}");
-                builder.AddAttribute(11, "ChildContent", (RenderFragment)(childBuilder =>
-                {
-                    childBuilder.AddContent(12, gamerTag);
-                }));
-                builder.CloseComponent();
-
-                if (isWinner)
-                {
-                    builder.AddContent(13, $" ({game.NonTeamGame.Score})");
-                    builder.CloseElement();
-                }
-
-                if (i < gamerTags.Count - 1)
-                    builder.AddContent(14, ", ");
-            }
-        }
-    };
 }

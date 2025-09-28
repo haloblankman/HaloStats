@@ -1,0 +1,27 @@
+﻿@inject IJSRuntime JS
+
+@if (_localString is null)
+{
+    <span>...</span>
+}
+else
+{
+    @(_localString)
+}
+
+@code {
+    [Parameter] public DateTime UtcDate { get; set; }
+    [Parameter] public string? Format { get; set; } = "g"; // Optional: .NET format string, fallback to browser default
+
+    private string? _localString;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Use JS interop to convert to local time string
+        _localString = await JS.InvokeAsync<string>(
+            "toLocalDateString",
+            UtcDate.ToString("o"), // ISO 8601
+            Format
+        );
+    }
+}

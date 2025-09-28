@@ -117,6 +117,6 @@ public class PlayerRepository : IPlayerRepository
                    where gp2.Gamertag != gamertag
                    select gp2.Gamertag;
 
-        return await gamertags.Distinct().ToListAsync();
+        return await gamertags.Distinct().Order().ToListAsync();
     }
 }

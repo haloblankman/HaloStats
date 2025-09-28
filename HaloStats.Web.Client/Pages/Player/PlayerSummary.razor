@@ -3,17 +3,79 @@
 
 @if (Summary != null)
 {
-    <MudText>GamesPlayedCount: @Summary.GamesPlayedCount</MudText>
-    <MudText>TotalWins: @Summary.TotalWins</MudText>
-    <MudText>TotalKills: @Summary.TotalKills</MudText>
-    <MudText>TotalAssists: @Summary.TotalAssists</MudText>
-    <MudText>TotalDeaths: @Summary.TotalDeaths</MudText>
-    <MudText>WinPercentage: @Summary.WinPercentage.ToString("P1")</MudText>
-    <MudText>KillDeathRatio: @Summary.KillDeathRatio.ToString("0.00")</MudText>
-    <MudText>KillAssistDeathRatio: @Summary.KillAssistDeathRatio.ToString("0.00")</MudText>
+    <div class="stat-box-container">
+        <div class="stat-box">
+            <span class="stat-value">@Summary.GamesPlayedCount</span>
+            <span class="stat-label">Games Played</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">@Summary.TotalWins</span>
+            <span class="stat-label">Total Wins</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">@Summary.TotalKills</span>
+            <span class="stat-label">Total Kills</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">@Summary.TotalAssists</span>
+            <span class="stat-label">Total Assists</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">@Summary.TotalDeaths</span>
+            <span class="stat-label">Total Deaths</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">@Summary.WinPercentage.ToString("P1")</span>
+            <span class="stat-label">Win %</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">@Summary.KillDeathRatio.ToString("0.00")</span>
+            <span class="stat-label">K/D Ratio</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">@Summary.KillAssistDeathRatio.ToString("0.00")</span>
+            <span class="stat-label">K+A/D Ratio</span>
+        </div>
+    </div>
 }
 
 @code {
     [Parameter]
     public HaloStats.Web.Shared.Contracts.Player.PlayerSummary? Summary { get; set; }
 }
+
+<style>
+    .stat-box-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        justify-content: center;
+        margin: 2rem 0;
+    }
+
+    .stat-box {
+        background: var(--mud-palette-surface, #fff);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        padding: 1.5rem 2rem;
+        min-width: 120px;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1 1 120px;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        color: var(--mud-palette-text-secondary, #666);
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+</style>
