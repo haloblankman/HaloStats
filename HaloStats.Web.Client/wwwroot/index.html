@@ -32,17 +32,5 @@
     <script src="_framework/aspnetcore-browser-refresh.js"></script>
     <!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
     <script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>
-    <script>
-        window.toLocalDateString = function (utcString, format) {
-            const date = new Date(utcString);
-            // Use browser's locale and options if no format is provided
-            if (!format || format === "g") {
-                return date.toLocaleString();
-            }
-            // You can expand this to support more formats if needed
-            return date.toLocaleString();
-        }
-    </script>
 </body>
-
 </html>

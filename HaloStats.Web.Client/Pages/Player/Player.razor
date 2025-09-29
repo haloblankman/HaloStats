@@ -67,13 +67,26 @@ else
     private string? lastGamertag;
     private string? lastFilterByGamertag;
     private List<string> playedWithGamertags { get; set; } = new();
-    private string? filterByGamertag;
+    private string? _filterByGamertag;
+    private string? filterByGamertag
+    {
+        get => _filterByGamertag;
+        set
+        {
+            if (_filterByGamertag != value)
+            {
+                _filterByGamertag = value;
+                _ = GamertagSearch();
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         Navigation.LocationChanged += OnLocationChanged;
         await LoadFromQueryAsync();
     }
+
 
     private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
@@ -159,6 +172,11 @@ else
         Navigation.NavigateTo(newUri, forceLoad: false);
 
         await LoadGameHistory();
+    }
+
+    private Task HandleChange(ChangeEventArgs e)
+    {
+        return GamertagSearch();
     }
 
     private async Task LoadGamertags()

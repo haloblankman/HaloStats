@@ -21,9 +21,19 @@
 </MudLayout>
 @code {
     bool _drawerOpen = true;
-
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
     }
 }
+<script>
+    window.toLocalDateString = function (utcString, format) {
+        const date = new Date(utcString);
+        // Use browser's locale and options if no format is provided
+        if (!format || format === "g") {
+            return date.toLocaleString();
+        }
+        // You can expand this to support more formats if needed
+        return date.toLocaleString();
+    }
+</script>
