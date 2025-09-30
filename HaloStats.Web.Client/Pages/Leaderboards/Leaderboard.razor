@@ -1,6 +1,8 @@
 ﻿@page "/leaderboard/{game}"
 @using HaloStats.Web.Shared.Contracts.Leaderboard
 @using HaloStats.Web.Shared.Enums
+@using HaloStats.Web.Shared.Constants
+@using HaloStats.Web.Client.Infrastructure.Extensions
 
 @inject HttpClient Http
 
@@ -17,13 +19,25 @@ else if (errorMessage is not null)
 }
 else if (leaderboard is not null)
 {
-    <MudText Typo="Typo.h4">Top 10 Kill Leaders (All Time)</MudText>
-    <MudTable Items="leaderboard.TopPlayersByKillCount.Players" Dense="true">
+
+    <MudTable 
+        T="LeaderboardPlayer" 
+        ServerData="ReloadTopPlayersTable" 
+        Dense="true" 
+        @ref="topPlayers"
+        RowsPerPage="10">
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h4">Top Players (All Time)</MudText>
+            <MudSpacer />
+            <MudTextField T="string" ValueChanged="@(s => OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
         <HeaderContent>
             <MudTh>Rank</MudTh>
             <MudTh>Gamertag</MudTh>
-            <MudTh>Kills</MudTh>
-            <MudTh>KDR</MudTh>
+            <MudTh><MudTableSortLabel SortLabel="@PageSettings.Leaderboard.SortKills" T="LeaderboardPlayer">Kills</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortLabel="@PageSettings.Leaderboard.SortKdr" T="LeaderboardPlayer">KDR</MudTableSortLabel></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Rank">@context.Rank</MudTd>
@@ -35,10 +49,19 @@ else if (leaderboard is not null)
             <MudTd DataLabel="Kills">@context.Kills</MudTd>
             <MudTd DataLabel="KDR">@context.KillDeathRatio.ToString("0.00")</MudTd>
         </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No matching records found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+        </PagerContent>
     </MudTable>
 
     <MudText Typo="Typo.h4" Class="mt-6">Top 10 Kill Leaders (This Month)</MudText>
-    <MudTable Items="leaderboard.TopPlayersByKillCountThisMonth.Players" Dense="true">
+    <MudTable Items="leaderboard.TopPlayersThisMonth.Records" Dense="true">
         <HeaderContent>
             <MudTh>Rank</MudTh>
             <MudTh>Gamertag</MudTh>
@@ -119,26 +142,20 @@ else if (leaderboard is not null)
 }
 
 @code {
-    [Parameter]
-    public string? Game { get; set; }
+    [Parameter] public string? Game { get; set; }
+
+    private MudTable<LeaderboardPlayer> topPlayers;
     private string GameDisplay { get; set; } = "Unknown";
     private GetLeaderboardResponse leaderboard;
     private bool isLoading = true;
     private string? errorMessage;
+    private string? filterTopLeaderboardGamertag;
 
     protected override async Task OnInitializedAsync()
     {
-        HaloGames gameToLoad;
+        HaloGames gameToLoad = MapRouteToGameEnum();
         var gameEnum = LeaderboardRouteMapper.MapRouteToGameEnum(Game);
-        if (gameEnum == null)
-        {
-            gameToLoad = HaloGames.HaloMccAll; // Default value
-        }
-        else
-        {
-            GameDisplay = LeaderboardRouteMapper.MapGameEnumToDescription(gameEnum.Value);
-            gameToLoad = gameEnum.Value;
-        }
+        GameDisplay = LeaderboardRouteMapper.MapGameEnumToDescription(gameEnum);
         StateHasChanged();
     }
 
@@ -146,17 +163,9 @@ else if (leaderboard is not null)
     {
         isLoading = true;
         errorMessage = null;
-        HaloGames gameToLoad;
+        HaloGames gameToLoad = MapRouteToGameEnum();
         var gameEnum = LeaderboardRouteMapper.MapRouteToGameEnum(Game);
-        if (gameEnum == null)
-        {
-            gameToLoad = HaloGames.HaloMccAll; // Default value
-        }
-        else
-        {
-            gameToLoad = gameEnum.Value;
-        }
-        GameDisplay = LeaderboardRouteMapper.MapGameEnumToDescription(gameEnum.Value);
+        GameDisplay = LeaderboardRouteMapper.MapGameEnumToDescription(gameEnum);
         await LoadLeaderboard(gameToLoad);
         StateHasChanged();
     }
@@ -172,5 +181,65 @@ else if (leaderboard is not null)
             errorMessage = $"Failed to load leaderboard data: {ex.Message}";
         }
         isLoading = false;
+    }
+
+    private async Task<TableData<LeaderboardPlayer>> ReloadTopPlayersTable(TableState state, CancellationToken token)
+    {
+        var request = new GetLeaderboardPlayersRequest
+        {
+            SortDirection = state.SortDirection.ToSortDirection(),
+            PageNumber = state.Page + 1,
+            PageSize = state.PageSize,
+            SortedBy = state.SortLabel,
+            IsMonthly = false,
+            SearchGamertag = filterTopLeaderboardGamertag
+        };
+        var game = MapRouteToGameEnum();
+        var leaderboard = await Http.GetFromJsonAsync<GetLeaderboardPlayersResponse>($"/api/leaderboard/{game}/top-players?{ToQueryString(request)}");
+        return new TableData<LeaderboardPlayer>
+        {
+            Items = leaderboard!.Records,
+            TotalItems = leaderboard.TotalRecords
+        };
+    }
+
+    private HaloGames MapRouteToGameEnum()
+    {
+        HaloGames gameToLoad;
+        var gameEnum = LeaderboardRouteMapper.MapRouteToGameEnum(Game);
+        if (gameEnum == null)
+        {
+            gameToLoad = HaloGames.HaloMccAll; // Default value
+        }
+        else
+        {
+            gameToLoad = gameEnum.Value;
+        }
+        return gameToLoad;
+    }
+
+    private void OnSearch(string gamertag)
+    {
+        filterTopLeaderboardGamertag = gamertag;
+        topPlayers.ReloadServerData();
+    }
+
+    private string ToQueryString(GetLeaderboardPlayersRequest request)
+    {
+        var query = new List<string>
+        {
+            $"SortDirection={request.SortDirection}",
+            $"PageNumber={request.PageNumber}",
+            $"PageSize={request.PageSize}",
+            $"IsMonthly={request.IsMonthly.ToString().ToLower()}"
+        };
+
+        if (!string.IsNullOrWhiteSpace(request.SortedBy))
+            query.Add($"SortedBy={Uri.EscapeDataString(request.SortedBy)}");
+
+        if (!string.IsNullOrWhiteSpace(request.SearchGamertag))
+            query.Add($"SearchGamertag={Uri.EscapeDataString(request.SearchGamertag)}");
+
+        return string.Join("&", query);
     }
 }

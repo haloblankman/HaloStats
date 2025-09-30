@@ -19,9 +19,16 @@ namespace HaloStats.Web.Server.Controllers
 
         [HttpGet]
         [Route("{game}")]
-        public async Task<GetLeaderboardResponse> GetLeaderboard(HaloGames game)
+        public Task<GetLeaderboardResponse> GetLeaderboard(HaloGames game)
         {
-            return await getLeaderboardService.GetLeaderboard(game);
+            return getLeaderboardService.GetLeaderboard(game);
+        }
+
+        [HttpGet]
+        [Route("{game}/top-players")]
+        public Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, [FromQuery] GetLeaderboardPlayersRequest request)
+        {
+            return getLeaderboardService.SearchTopPlayers(game, request);
         }
     }
 }

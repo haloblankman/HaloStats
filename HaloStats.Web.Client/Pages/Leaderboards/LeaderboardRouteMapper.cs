@@ -20,7 +20,7 @@ public static class LeaderboardRouteMapper
         };
     }
 
-    public static string MapGameEnumToDescription(HaloGames game)
+    public static string MapGameEnumToDescription(HaloGames? game)
     {
         return game switch
         {

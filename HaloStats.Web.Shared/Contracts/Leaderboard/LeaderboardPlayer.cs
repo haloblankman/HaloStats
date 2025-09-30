@@ -1,10 +1,6 @@
-﻿namespace HaloStats.Web.Shared.Contracts.Shared;
-public class TopPlayersByKillCount
-{
-    public required List<PlayerByKillCount> Players { get; set; }
-}
+﻿namespace HaloStats.Web.Shared.Contracts.Leaderboard;
 
-public class PlayerByKillCount
+public class LeaderboardPlayer
 {
     public required int Rank { get; set; }
     public required string Gamertag { get; set; }

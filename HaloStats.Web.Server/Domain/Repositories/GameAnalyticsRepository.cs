@@ -2,6 +2,8 @@
 using HaloStats.Database.Entities;
 using HaloStats.Database.Entities.StoredProcs;
 using HaloStats.Web.Server.Domain.Mappers;
+using HaloStats.Web.Shared.Constants;
+using HaloStats.Web.Shared.Contracts.Leaderboard;
 using HaloStats.Web.Shared.Contracts.Shared;
 using HaloStats.Web.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -10,8 +12,7 @@ namespace HaloStats.Web.Server.Domain.Repositories;
 
 public interface IGameAnalyticsRepository
 {
-    Task<TopPlayersByKillCount> GetTopPlayersByKillCount(HaloGames game);
-    Task<TopPlayersByKillCount> GetTopPlayersByKillCountThisMonth(HaloGames game);
+    Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request);
     Task<TopTeammatePairs> GetTopTeammatePairs(string? gamertag, HaloGames game, int take = 10);
     Task<TopTeammatePairs> GetTopTeammatePairsByWins(string? gamertag, HaloGames game, int take = 10);
     Task<TopOpponents> GetTopOpponents(string? gamertag, HaloGames game, int take = 10);
@@ -26,14 +27,20 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
         this.db = db;
     }
 
-    public async Task<TopPlayersByKillCount> GetTopPlayersByKillCount(HaloGames game)
+    public async Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request)
     {
+        var oneMonthAgo = DateTime.UtcNow.AddMonths(-1);
         var gamesFilter = GetGameFilter(game);
-        var players = await db.GamePlayers
+        if (request.IsMonthly)
+        {
+            gamesFilter = gamesFilter.Where(g => g.ReportedAt >= oneMonthAgo);
+        }
+        var query = db.GamePlayers
             .Join(gamesFilter,
                 gp => gp.GameId,
                 g => g.GameId,
                 (gp, g) => gp)
+            .Where(gp => string.IsNullOrEmpty(request.SearchGamertag) || gp.Gamertag == request.SearchGamertag)
             .GroupBy(gp => gp.Gamertag)
             .Select(g => new {
                 Gamertag = g.Key,
@@ -42,15 +49,34 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
                 KillDeathRatio = g.Sum(x => x.Deaths) == 0
                     ? g.Sum(x => x.Kills)
                     : (decimal)g.Sum(x => x.Kills) / g.Sum(x => x.Deaths)
-            })
-            .OrderByDescending(x => x.Kills)
-            .Take(10)
+            });
+        
+        if (string.IsNullOrWhiteSpace(request.SortedBy) || request.SortedBy == PageSettings.Leaderboard.SortKills)
+        {
+            if (request.SortDirection is Shared.Infrastructure.SortDirection.None or Shared.Infrastructure.SortDirection.Descending)
+                query = query.OrderByDescending(x => x.Kills);
+            else
+                query = query.OrderBy(x => x.Kills);
+        }
+        else
+        {
+            if (request.SortDirection is Shared.Infrastructure.SortDirection.None or Shared.Infrastructure.SortDirection.Descending)
+                query = query.OrderByDescending(x => x.KillDeathRatio);
+            else
+                query = query.OrderBy(x => x.KillDeathRatio);
+        }
+        var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
+        var totalPlayers = await query.CountAsync();
+        var players = await query
+            .Skip((pageNumber - 1) * request.PageSize)
+            .Take(request.PageSize + 1)
             .ToListAsync();
-
         var rankedPlayers = players
-            .Select((p, i) => new PlayerByKillCount
+            .Select((p, i) => new LeaderboardPlayer
             {
-                Rank = i + 1,
+                Rank = request.SortDirection is Shared.Infrastructure.SortDirection.Descending or Shared.Infrastructure.SortDirection.None ? 
+                    (pageNumber - 1) * request.PageSize + i + 1 :
+                    totalPlayers - ((pageNumber - 1) * request.PageSize + i),
                 Gamertag = p.Gamertag,
                 Kills = p.Kills,
                 Deaths = p.Deaths,
@@ -58,11 +84,17 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
             })
             .ToList();
 
-        var result = new TopPlayersByKillCount
+        bool isNextPage = rankedPlayers.Count() > request.PageSize;
+        if (isNextPage)
+            rankedPlayers.RemoveAt(rankedPlayers.Count() - 1);
+
+        return new GetLeaderboardPlayersResponse
         {
-            Players = rankedPlayers
+            Records = rankedPlayers,
+            TotalRecords = totalPlayers,
+            Parameters  = request,
+            IsNextPage = isNextPage
         };
-        return result;
     }
 
     private IQueryable<Game> GetGameFilter(HaloGames game)
@@ -74,47 +106,6 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
             gamesFilter = gamesFilter.Where(g => gameEnum == null || g.GameEnum == gameEnum );
         }
         return gamesFilter;
-    }
-
-    public async Task<TopPlayersByKillCount> GetTopPlayersByKillCountThisMonth(HaloGames game)
-    {
-        var oneMonthAgo = DateTime.UtcNow.AddMonths(-1);
-        var gameFilter = GetGameFilter(game);
-
-        var players = await db.GamePlayers
-            .Join(gameFilter.Where(g => g.ReportedAt >= oneMonthAgo),
-                gp => gp.GameId,
-                g => g.GameId,
-                (gp, g) => gp)
-            .GroupBy(gp => gp.Gamertag)
-            .Select(g => new {
-                Gamertag = g.Key,
-                Kills = g.Sum(x => x.Kills),
-                Deaths = g.Sum(x => x.Deaths),
-                KillDeathRatio = g.Sum(x => x.Deaths) == 0
-                    ? g.Sum(x => x.Kills)
-                    : (decimal)g.Sum(x => x.Kills) / g.Sum(x => x.Deaths)
-            })
-            .OrderByDescending(x => x.Kills)
-            .Take(10)
-            .ToListAsync();
-
-        var rankedPlayers = players
-            .Select((p, i) => new PlayerByKillCount
-            {
-                Rank = i + 1,
-                Gamertag = p.Gamertag,
-                Kills = p.Kills,
-                Deaths = p.Deaths,
-                KillDeathRatio = p.KillDeathRatio
-            })
-            .ToList();
-
-        var result = new TopPlayersByKillCount
-        {
-            Players = rankedPlayers
-        };
-        return result;
     }
 
     public async Task<TopTeammatePairs> GetTopTeammatePairs(string? gamertag, HaloGames game, int take = 10)
