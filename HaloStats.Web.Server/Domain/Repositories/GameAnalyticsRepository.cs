@@ -2,7 +2,6 @@
 using HaloStats.Database.Entities;
 using HaloStats.Database.Entities.StoredProcs;
 using HaloStats.Web.Server.Domain.Mappers;
-using HaloStats.Web.Shared.Constants;
 using HaloStats.Web.Shared.Contracts.Leaderboard;
 using HaloStats.Web.Shared.Contracts.Shared;
 using HaloStats.Web.Shared.Enums;
@@ -29,70 +28,39 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
 
     public async Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request)
     {
-        var oneMonthAgo = DateTime.UtcNow.AddMonths(-1);
-        var gamesFilter = GetGameFilter(game);
-        if (request.IsMonthly)
-        {
-            gamesFilter = gamesFilter.Where(g => g.ReportedAt >= oneMonthAgo);
-        }
-        var query = db.GamePlayers
-            .Join(gamesFilter,
-                gp => gp.GameId,
-                g => g.GameId,
-                (gp, g) => gp)
-            .Where(gp => string.IsNullOrEmpty(request.SearchGamertag) || gp.Gamertag == request.SearchGamertag)
-            .GroupBy(gp => gp.Gamertag)
-            .Select(g => new {
-                Gamertag = g.Key,
-                Kills = g.Sum(x => x.Kills),
-                Deaths = g.Sum(x => x.Deaths),
-                KillDeathRatio = g.Sum(x => x.Deaths) == 0
-                    ? g.Sum(x => x.Kills)
-                    : (decimal)g.Sum(x => x.Kills) / g.Sum(x => x.Deaths)
-            });
-        
-        if (string.IsNullOrWhiteSpace(request.SortedBy) || request.SortedBy == PageSettings.Leaderboard.SortKills)
-        {
-            if (request.SortDirection is Shared.Infrastructure.SortDirection.None or Shared.Infrastructure.SortDirection.Descending)
-                query = query.OrderByDescending(x => x.Kills);
-            else
-                query = query.OrderBy(x => x.Kills);
-        }
-        else
-        {
-            if (request.SortDirection is Shared.Infrastructure.SortDirection.None or Shared.Infrastructure.SortDirection.Descending)
-                query = query.OrderByDescending(x => x.KillDeathRatio);
-            else
-                query = query.OrderBy(x => x.KillDeathRatio);
-        }
-        var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
-        var totalPlayers = await query.CountAsync();
-        var players = await query
-            .Skip((pageNumber - 1) * request.PageSize)
-            .Take(request.PageSize + 1)
+        var gameEnum = game.MapToGameEnum();
+        string sortDir = request.SortDirection is Shared.Infrastructure.SortDirection.None or Shared.Infrastructure.SortDirection.Descending ? "DESC" : "ASC";
+        var topPlayers = await db.Set<Usp_SearchTopPlayers>()
+            .FromSqlRaw("SELECT * FROM usp_searchtopplayers({0}::smallint,{1},{2}::text,{3},{4},{5},{6})", 
+                gameEnum, 
+                request.IsMonthly, 
+                request.SearchGamertag, 
+                request.SortedBy, 
+                sortDir, 
+                request.PageNumber, 
+                request.PageSize)
             .ToListAsync();
-        var rankedPlayers = players
-            .Select((p, i) => new LeaderboardPlayer
-            {
-                Rank = request.SortDirection is Shared.Infrastructure.SortDirection.Descending or Shared.Infrastructure.SortDirection.None ? 
-                    (pageNumber - 1) * request.PageSize + i + 1 :
-                    totalPlayers - ((pageNumber - 1) * request.PageSize + i),
-                Gamertag = p.Gamertag,
-                Kills = p.Kills,
-                Deaths = p.Deaths,
-                KillDeathRatio = p.KillDeathRatio
-            })
-            .ToList();
 
-        bool isNextPage = rankedPlayers.Count() > request.PageSize;
+        var totalPlayers = topPlayers.Count > 0 ? topPlayers[0].TotalCount : 0;
+
+        var isNextPage = topPlayers.Count > request.PageSize;
         if (isNextPage)
-            rankedPlayers.RemoveAt(rankedPlayers.Count() - 1);
+            topPlayers.RemoveAt(topPlayers.Count - 1);
+
+        var records = topPlayers.Select(p => new LeaderboardPlayer
+        {
+            Rank = p.Rank,
+            Gamertag = p.Gamertag,
+            Kills = p.Kills,
+            Deaths = p.Deaths,
+            KillDeathRatio = p.KillDeathRatio
+        }).ToList();
 
         return new GetLeaderboardPlayersResponse
         {
-            Records = rankedPlayers,
+            Records = records,
             TotalRecords = totalPlayers,
-            Parameters  = request,
+            Parameters = request,
             IsNextPage = isNextPage
         };
     }

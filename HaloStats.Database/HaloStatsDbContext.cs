@@ -47,5 +47,6 @@ public class HaloStatsDbContext : DbContext
 
         modelBuilder.Entity<Usp_GetTopTeammatePairs>().HasNoKey().ToView(null);
         modelBuilder.Entity<Usp_GetTopOpponentPairs>().HasNoKey().ToView(null);
+        modelBuilder.Entity<Usp_SearchTopPlayers>().HasNoKey().ToView(null);
     }
 }
