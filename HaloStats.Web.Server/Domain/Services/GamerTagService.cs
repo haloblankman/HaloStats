@@ -1,4 +1,5 @@
 ﻿using HaloStats.Web.Server.Domain.Repositories;
+using HaloStats.Web.Shared.Contracts.Player;
 using HaloStats.Web.Shared.Contracts.Shared;
 
 namespace HaloStats.Web.Server.Domain.Services;
@@ -6,6 +7,7 @@ namespace HaloStats.Web.Server.Domain.Services;
 public interface IGamertagService
 {
     Task<List<GamertagInfo>> GetGamertags();
+    Task<List<string>> SearchGamertags(SearchGamertagsRequest request);
 }
 
 public class GamertagService : IGamertagService
@@ -26,5 +28,11 @@ public class GamertagService : IGamertagService
             Name = gt.Name,
             XboxUserId = gt.XboxUserId
         }).OrderBy(p => p.Name).ToList();
+    }
+
+    public async Task<List<string>> SearchGamertags(SearchGamertagsRequest request)
+    {
+        var gamertags = await gamerTagRepository.SearchGamertags(request);
+        return gamertags;
     }
 }

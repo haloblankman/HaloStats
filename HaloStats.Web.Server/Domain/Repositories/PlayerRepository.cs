@@ -8,7 +8,6 @@ public interface IPlayerRepository
 {
     Task<PlayerSummary> GetPlayerSummary(string gamerTag);
     Task<GetPlayerGamesResponse> GetPlayerGameHistory(string gamerTag, GetPlayerGamesRequest request);
-    Task<List<string>> GetGamertagsThatPlayedWith(string gamertag);
 }
 
 public class PlayerRepository : IPlayerRepository
@@ -106,17 +105,5 @@ public class PlayerRepository : IPlayerRepository
             PageSize = pageSize,
             IsNextPage = gamesPlayed.Count() > pageSize
         };
-    }
-
-    public async Task<List<string>> GetGamertagsThatPlayedWith(string gamertag)
-    {
-        var gamertags = from gp in db.GamePlayers
-                   join g in db.Games.Where(g => !g.IsDuplicateGame && !g.IsDeleted) on gp.GameId equals g.GameId
-                   join gp2 in db.GamePlayers on g.GameId equals gp2.GameId
-                   where gp.Gamertag == gamertag
-                   where gp2.Gamertag != gamertag
-                   select gp2.Gamertag;
-
-        return await gamertags.Distinct().Order().ToListAsync();
     }
 }

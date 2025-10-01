@@ -183,7 +183,7 @@ else
     {
         try
         {
-            playedWithGamertags = await Http.GetFromJsonAsync<List<string>>($"/api/player/{gamertag}/games/played-with-gamertags") ?? new List<string>();
+            playedWithGamertags = await Http.GetFromJsonAsync<List<string>>($"/api/gamertag/search?playedWithGamertag={Uri.EscapeDataString(gamertag)}") ?? new List<string>();
         }
         catch
         {

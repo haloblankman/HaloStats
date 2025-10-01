@@ -30,8 +30,12 @@ else if (leaderboard is not null)
         <ToolBarContent>
             <MudText Typo="Typo.h4">Top Players (All Time)</MudText>
             <MudSpacer />
-            <MudTextField T="string" ValueChanged="@(s => OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
-                AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            <MudAutocomplete T="string"Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
+                Label="Find player..."
+                Value="filterTopLeaderboardGamertag" ValueChanged="OnFilterByGamertagChanged" SearchFunc="@SearchTopLeaderboard"
+                ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true" FullWidth="false" MaxItems="100"
+                Clearable="true"
+                />
         </ToolBarContent>
         <HeaderContent>
             <MudTh>Rank</MudTh>
@@ -144,6 +148,7 @@ else if (leaderboard is not null)
 @code {
     [Parameter] public string? Game { get; set; }
 
+    private List<string> gamertags { get; set; }
     private MudTable<LeaderboardPlayer> topPlayers;
     private string GameDisplay { get; set; } = "Unknown";
     private GetLeaderboardResponse leaderboard;
@@ -170,11 +175,26 @@ else if (leaderboard is not null)
         StateHasChanged();
     }
 
+    private async Task OnFilterByGamertagChanged(string? newValue)
+    {
+        filterTopLeaderboardGamertag = newValue;
+        await topPlayers.ReloadServerData();
+    }
+
+    private async Task<IEnumerable<string>?> SearchTopLeaderboard(string? value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(value))
+            return gamertags;
+
+        return gamertags.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
     private async Task LoadLeaderboard(HaloGames game)
     {
         try
         {
             leaderboard = await Http.GetFromJsonAsync<GetLeaderboardResponse>($"/api/leaderboard/{game}");
+            gamertags = await Http.GetFromJsonAsync<List<string>>($"/api/gamertag/search?Game={LeaderboardRouteMapper.MapRouteToGameEnum(Game)}");
         }
         catch (Exception ex)
         {
