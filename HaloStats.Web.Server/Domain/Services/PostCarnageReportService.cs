@@ -68,7 +68,7 @@ public class PostCarnageReportService : IPostCarnageReportService
             }
         }
 
-        game.CalcualtePlayerStandings();
+        game.SetCalculatedFields();
         db.Games.Add(game);
 
         var gamerTags = game.Players.Select(p => p.Gamertag).Distinct().ToList();

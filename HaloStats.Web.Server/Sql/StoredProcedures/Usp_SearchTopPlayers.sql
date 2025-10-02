@@ -1,4 +1,3 @@
--- File: db/functions/search_top_players.sql
 CREATE OR REPLACE FUNCTION Usp_SearchTopPlayers(
     p_game_enum SMALLINT,
     p_is_monthly BOOLEAN,
@@ -36,7 +35,7 @@ BEGIN
         FROM "Games" g
         WHERE g."IsDuplicateGame" = FALSE
           AND g."IsDeleted" = FALSE
-          AND (g."GameEnum" IS NULL OR g."GameEnum" = p_game_enum)
+          AND (p_game_enum IS NULL OR g."GameEnum" = p_game_enum)
           AND (NOT p_is_monthly OR g."ReportedAt" >= v_one_month_ago)
     ),
     player_stats AS (
@@ -50,6 +49,7 @@ BEGIN
         FROM "GamePlayers" gp
         JOIN filtered_games g ON gp."GameId" = g."GameId"
         GROUP BY gp."Gamertag"
+        HAVING SUM(gp."Kills") >= 100
     ),
     ranked_players AS (
         SELECT

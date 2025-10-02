@@ -38,8 +38,10 @@ public class GamePlayer
     public required int CompletedGame { get; set; }
     public required int SecondsPlayed { get; set; }
     public required int KilledMostPlayerIndex { get; set; }
+    public string? KilledMostGamertag { get; set; }
     public required int KilledMostPlayerCount { get; set; }
     public required int MostKilledByPlayerIndex { get; set; }
+    public string? MostKilledByGamertag { get; set; }
     public required int MostKilledByPlayerCount { get; set; }
     public required int MostUsedWeapon { get; set; }
     public required int MostUsedWeaponCount { get; set; }

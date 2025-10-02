@@ -1,5 +1,4 @@
-﻿using HaloStats.Web.Server.Domain.Mappers;
-using HaloStats.Web.Server.Domain.Repositories;
+﻿using HaloStats.Web.Server.Domain.Repositories;
 using HaloStats.Web.Shared.Constants;
 using HaloStats.Web.Shared.Contracts.Player;
 using HaloStats.Web.Shared.Enums;
@@ -31,9 +30,6 @@ namespace HaloStats.Web.Server.Domain.Services
             }
 
             var gameHistory = await playerRepo.GetPlayerGameHistory(gamertag, new GetPlayerGamesRequest { PageNumber = 1, PageSize = PageSettings.DefaultPlayerGamesPageSize, FilterGamertag = filterByGamertag });
-
-            var topTeammates = await gameAnalyticsRepository.GetTopTeammatePairs(gamertag, HaloGames.HaloMccAll, 10);
-            var topTeammatesByWins = await gameAnalyticsRepository.GetTopTeammatePairsByWins(gamertag, HaloGames.HaloMccAll, 10);
             var topOpponents = await gameAnalyticsRepository.GetTopOpponents(gamertag, HaloGames.HaloMccAll, 10);
 
             return new GetPlayerResponse
@@ -41,8 +37,6 @@ namespace HaloStats.Web.Server.Domain.Services
                 Gamertag = gamertag,
                 PlayerSummary = playerSummary,
                 GamesPlayed = gameHistory,
-                TopTeammates = topTeammates.ToTopTeammates(),
-                TopTeammatesByWins = topTeammatesByWins.ToTopTeammates(),
                 TopOpponents = topOpponents
             };
         }

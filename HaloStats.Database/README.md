@@ -1,6 +1,9 @@
 Add new migration
 `dotnet ef migrations add <MigrationName> --project HaloStats.Database --startup-project HaloStats.Web.Server`
 
+View migrations
+`dotnet ef migrations list --project HaloStats.Database --startup-project HaloStats.Web.Server`
+
 Apply migrations
 `dotnet ef database update --project HaloStats.Database --startup-project HaloStats.Web.Server`
 

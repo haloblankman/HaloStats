@@ -17,132 +17,225 @@ else if (errorMessage is not null)
 {
     <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
 }
-else if (leaderboard is not null)
+else
 {
+    <MudStack>
+        <MudTable 
+            T="LeaderboardPlayer" 
+            ServerData="ReloadTopPlayersTable" 
+            Dense="true" 
+            @ref="topPlayers"
+                  RowsPerPage="PageSettings.Leaderboard.DefaultPageSize">
 
-    <MudTable 
-        T="LeaderboardPlayer" 
-        ServerData="ReloadTopPlayersTable" 
-        Dense="true" 
-        @ref="topPlayers"
-        RowsPerPage="10">
+            <ToolBarContent>
+                <MudText Typo="Typo.h4">Top Players (All Time)</MudText>
+                <MudText Typo="Typo.subtitle2">Must have > 100 kills to be on the leaderboards</MudText>
+                <MudSpacer />
+                <MudAutocomplete T="string"Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
+                    Label="Find player..."
+                                 Value="filterTopLeaderboardGamertag" ValueChanged="OnFilterByGamertagForTopPlayersChanged" SearchFunc="@SearchGamertags"
+                    ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true" FullWidth="false" MaxItems="100"
+                    Clearable="true"
+                    />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Rank</MudTh>
+                <MudTh>Gamertag</MudTh>
+                <MudTh><MudTableSortLabel SortLabel="@PageSettings.Leaderboard.SortKills" T="LeaderboardPlayer">Kills</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="@PageSettings.Leaderboard.SortKdr" T="LeaderboardPlayer">KDR</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Rank">@context.Rank</MudTd>
+                <MudTd DataLabel="Gamertag">
+                    <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.Gamertag)}")">
+                        @context.Gamertag
+                    </MudLink>
+                </MudTd>
+                <MudTd DataLabel="Kills">@context.Kills</MudTd>
+                <MudTd DataLabel="KDR">@context.KillDeathRatio.ToString("0.00")</MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText>No matching records found</MudText>
+            </NoRecordsContent>
+            <LoadingContent>
+                <MudText>Loading...</MudText>
+            </LoadingContent>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
 
-        <ToolBarContent>
-            <MudText Typo="Typo.h4">Top Players (All Time)</MudText>
-            <MudSpacer />
-            <MudAutocomplete T="string"Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
-                Label="Find player..."
-                Value="filterTopLeaderboardGamertag" ValueChanged="OnFilterByGamertagChanged" SearchFunc="@SearchTopLeaderboard"
-                ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true" FullWidth="false" MaxItems="100"
-                Clearable="true"
-                />
-        </ToolBarContent>
-        <HeaderContent>
-            <MudTh>Rank</MudTh>
-            <MudTh>Gamertag</MudTh>
-            <MudTh><MudTableSortLabel SortLabel="@PageSettings.Leaderboard.SortKills" T="LeaderboardPlayer">Kills</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortLabel="@PageSettings.Leaderboard.SortKdr" T="LeaderboardPlayer">KDR</MudTableSortLabel></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Rank">@context.Rank</MudTd>
-            <MudTd DataLabel="Gamertag">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.Gamertag)}")">
-                    @context.Gamertag
-                </MudLink>
-            </MudTd>
-            <MudTd DataLabel="Kills">@context.Kills</MudTd>
-            <MudTd DataLabel="KDR">@context.KillDeathRatio.ToString("0.00")</MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText>No matching records found</MudText>
-        </NoRecordsContent>
-        <LoadingContent>
-            <MudText>Loading...</MudText>
-        </LoadingContent>
-        <PagerContent>
-            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
-        </PagerContent>
-    </MudTable>
 
-    <MudText Typo="Typo.h4" Class="mt-6">Top 10 Kill Leaders (This Month)</MudText>
-    <MudTable Items="leaderboard.TopPlayersThisMonth.Records" Dense="true">
-        <HeaderContent>
-            <MudTh>Rank</MudTh>
-            <MudTh>Gamertag</MudTh>
-            <MudTh>Kills</MudTh>
-            <MudTh>KDR</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Rank">@context.Rank</MudTd>
-            <MudTd DataLabel="Gamertag">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.Gamertag)}")">
-                    @context.Gamertag
-                </MudLink>
-            </MudTd>
-            <MudTd DataLabel="Kills">@context.Kills</MudTd>
-            <MudTd DataLabel="KDR">@context.KillDeathRatio.ToString("0.00")</MudTd>
-        </RowTemplate>
-    </MudTable>
+        <MudTable T="LeaderboardPlayer"
+                  ServerData="ReloadTopMonthlyPlayersTable"
+                  Dense="true"
+                  @ref="topMonthlyPlayers"
+                  RowsPerPage="PageSettings.Leaderboard.DefaultPageSize">
 
-    <MudText Typo="Typo.h4" Class="mt-6">Top Teammate Pairs (Games Played Together)</MudText>
-    <MudTable Items="leaderboard.TopTeammatePairs.Pairs" Dense="true">
-        <HeaderContent>
-            <MudTh>Rank</MudTh>
-            <MudTh>Player 1</MudTh>
-            <MudTh>Player 2</MudTh>
-            <MudTh>Games Played</MudTh>
-            <MudTh>Wins</MudTh>
-            <MudTh>Losses</MudTh>
-            <MudTh>Win Rate</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Rank">@context.Rank</MudTd>
-            <MudTd DataLabel="Player 1">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamertag)}")">
-                    @context.PlayerOneGamertag
-                </MudLink>
-            </MudTd>
-            <MudTd DataLabel="Player 2">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamertag)}")">
-                    @context.PlayerTwoGamertag
-                </MudLink>
-            </MudTd>
-            <MudTd DataLabel="Games Played">@context.GamesPlayedTogether</MudTd>
-            <MudTd DataLabel="Wins">@context.WinsTogether</MudTd>
-            <MudTd DataLabel="Losses">@context.LossesTogether</MudTd>
-            <MudTd DataLabel="Win Rate">@context.WinRate.ToString("P1")</MudTd>
-        </RowTemplate>
-    </MudTable>
+            <ToolBarContent>
+                <MudText Typo="Typo.h4">Top Players (past month)</MudText><br />
+                <MudText Typo="Typo.subtitle2">Must have > 100 kills to be on the leaderboards</MudText>
+                <MudSpacer />
+                <MudAutocomplete T="string" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
+                                 Label="Find player..."
+                                 Value="filterTopMonthlyLeaderboardGamertag" ValueChanged="OnFilterByGamertagForTopMonthlyPlayersChanged" SearchFunc="@SearchGamertags"
+                                 ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true" FullWidth="false" MaxItems="100"
+                                 Clearable="true" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Rank</MudTh>
+                <MudTh>Gamertag</MudTh>
+                <MudTh><MudTableSortLabel SortLabel="@PageSettings.Leaderboard.SortKills" T="LeaderboardPlayer">Kills</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="@PageSettings.Leaderboard.SortKdr" T="LeaderboardPlayer">KDR</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Rank">@context.Rank</MudTd>
+                <MudTd DataLabel="Gamertag">
+                    <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.Gamertag)}")">
+                        @context.Gamertag
+                    </MudLink>
+                </MudTd>
+                <MudTd DataLabel="Kills">@context.Kills</MudTd>
+                <MudTd DataLabel="KDR">@context.KillDeathRatio.ToString("0.00")</MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText>No matching records found</MudText>
+            </NoRecordsContent>
+            <LoadingContent>
+                <MudText>Loading...</MudText>
+            </LoadingContent>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
 
-    <MudText Typo="Typo.h4" Class="mt-6">Top Teammate Pairs (By Wins)</MudText>
-    <MudTable Items="leaderboard.TopTeammatePairsByWins.Pairs" Dense="true">
-        <HeaderContent>
-            <MudTh>Rank</MudTh>
-            <MudTh>Player 1</MudTh>
-            <MudTh>Player 2</MudTh>
-            <MudTh>Games Played</MudTh>
-            <MudTh>Wins</MudTh>
-            <MudTh>Losses</MudTh>
-            <MudTh>Win Rate</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Rank">@context.Rank</MudTd>
-            <MudTd DataLabel="Player 1">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamertag)}")">
-                    @context.PlayerOneGamertag
-                </MudLink>
-            </MudTd>
-            <MudTd DataLabel="Player 2">
-                <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamertag)}")">
-                    @context.PlayerTwoGamertag
-                </MudLink>
-            </MudTd>
-            <MudTd DataLabel="Games Played">@context.GamesPlayedTogether</MudTd>
-            <MudTd DataLabel="Wins">@context.WinsTogether</MudTd>
-            <MudTd DataLabel="Losses">@context.LossesTogether</MudTd>
-            <MudTd DataLabel="Win Rate">@context.WinRate.ToString("P1")</MudTd>
-        </RowTemplate>
-    </MudTable>
+
+        <MudTable T="LeaderboardTeammatePair" 
+            ServerData="ReloadTopTeammatePairsTable"
+            Dense="true"
+            @ref="topTeammatePairs"
+            RowsPerPage="PageSettings.LeaderboardTeammatePairs.DefaultPageSize">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h4">Top Teammate Pairs</MudText><br />
+                <MudText Typo="Typo.subtitle2">Must have > 5 games togther to be on the leaderboards</MudText>
+                <MudSpacer />
+                <MudAutocomplete T="string" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
+                                 Label="Find player..."
+                                 Value="filterTopTeammatePairGamertag" ValueChanged="OnFilterByGamertagForTopTeammatePairChanged" SearchFunc="@SearchGamertags"
+                                 ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true" FullWidth="false" MaxItems="100"
+                                 Clearable="true" />
+            </ToolBarContent>
+
+            <HeaderContent>
+                <MudTh>Rank</MudTh>
+                <MudTh>Player 1</MudTh>
+                <MudTh>Player 2</MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="@PageSettings.LeaderboardTeammatePairs.SortGamesPlayedTogether" T="LeaderboardTeammatePair">Games Played</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="@PageSettings.LeaderboardTeammatePairs.SortWinsTogether" T="LeaderboardTeammatePair">Wins</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="@PageSettings.LeaderboardTeammatePairs.SortLossesTogether" T="LeaderboardTeammatePair">Losses</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="@PageSettings.LeaderboardTeammatePairs.SortWinRate" T="LeaderboardTeammatePair">Win Rate</MudTableSortLabel>
+                </MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Rank">@context.Rank</MudTd>
+                <MudTd DataLabel="Player 1">
+                    <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamertag)}")">
+                        @context.PlayerOneGamertag
+                    </MudLink>
+                </MudTd>
+                <MudTd DataLabel="Player 2">
+                    <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamertag)}")">
+                        @context.PlayerTwoGamertag
+                    </MudLink>
+                </MudTd>
+                <MudTd DataLabel="Games Played">@context.GamesPlayedTogether</MudTd>
+                <MudTd DataLabel="Wins">@context.WinsTogether</MudTd>
+                <MudTd DataLabel="Losses">@context.LossesTogether</MudTd>
+                <MudTd DataLabel="Win Rate">@context.WinRate.ToString("P1")</MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText>No matching records found</MudText>
+            </NoRecordsContent>
+            <LoadingContent>
+                <MudText>Loading...</MudText>
+            </LoadingContent>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
+
+
+        <MudTable T="LeaderboardTeammatePair"
+                  ServerData="ReloadTopMonthlyTeammatePairsTable"
+                  Dense="true"
+                  @ref="topMonthlyTeammatePairs"
+                  RowsPerPage="PageSettings.LeaderboardTeammatePairs.DefaultPageSize">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h4">Top Teammate Pairs (past month)</MudText><br />
+                <MudText Typo="Typo.subtitle2">Must have > 5 games togther to be on the leaderboards</MudText>
+                <MudSpacer />
+                <MudAutocomplete T="string" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
+                                 Label="Find player..."
+                                 Value="filterTopMonthlyTeammatePairGamertag" ValueChanged="OnFilterByGamertagForTopMonthlyTeammatePairChanged" SearchFunc="@SearchGamertags"
+                                 ResetValueOnEmptyText="true" CoerceText="true" SelectValueOnTab="true" FullWidth="false" MaxItems="100"
+                                 Clearable="true" />
+            </ToolBarContent>
+
+            <HeaderContent>
+                <MudTh>Rank</MudTh>
+                <MudTh>Player 1</MudTh>
+                <MudTh>Player 2</MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="@PageSettings.LeaderboardTeammatePairs.SortGamesPlayedTogether" T="LeaderboardTeammatePair">Games Played</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="@PageSettings.LeaderboardTeammatePairs.SortWinsTogether" T="LeaderboardTeammatePair">Wins</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="@PageSettings.LeaderboardTeammatePairs.SortLossesTogether" T="LeaderboardTeammatePair">Losses</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortLabel="@PageSettings.LeaderboardTeammatePairs.SortWinRate" T="LeaderboardTeammatePair">Win Rate</MudTableSortLabel>
+                </MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Rank">@context.Rank</MudTd>
+                <MudTd DataLabel="Player 1">
+                    <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerOneGamertag)}")">
+                        @context.PlayerOneGamertag
+                    </MudLink>
+                </MudTd>
+                <MudTd DataLabel="Player 2">
+                    <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamertag)}")">
+                        @context.PlayerTwoGamertag
+                    </MudLink>
+                </MudTd>
+                <MudTd DataLabel="Games Played">@context.GamesPlayedTogether</MudTd>
+                <MudTd DataLabel="Wins">@context.WinsTogether</MudTd>
+                <MudTd DataLabel="Losses">@context.LossesTogether</MudTd>
+                <MudTd DataLabel="Win Rate">@context.WinRate.ToString("P1")</MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText>No matching records found</MudText>
+            </NoRecordsContent>
+            <LoadingContent>
+                <MudText>Loading...</MudText>
+            </LoadingContent>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
+
+    </MudStack>
 }
 
 @code {
@@ -150,11 +243,16 @@ else if (leaderboard is not null)
 
     private List<string> gamertags { get; set; }
     private MudTable<LeaderboardPlayer> topPlayers;
+    private MudTable<LeaderboardPlayer> topMonthlyPlayers;
+    private MudTable<LeaderboardTeammatePair> topTeammatePairs;
+    private MudTable<LeaderboardTeammatePair> topMonthlyTeammatePairs;
     private string GameDisplay { get; set; } = "Unknown";
-    private GetLeaderboardResponse leaderboard;
     private bool isLoading = true;
     private string? errorMessage;
     private string? filterTopLeaderboardGamertag;
+    private string? filterTopMonthlyLeaderboardGamertag;
+    private string? filterTopTeammatePairGamertag;
+    private string? filterTopMonthlyTeammatePairGamertag;
 
     protected override async Task OnInitializedAsync()
     {
@@ -175,13 +273,31 @@ else if (leaderboard is not null)
         StateHasChanged();
     }
 
-    private async Task OnFilterByGamertagChanged(string? newValue)
+    private async Task OnFilterByGamertagForTopPlayersChanged(string? newValue)
     {
         filterTopLeaderboardGamertag = newValue;
         await topPlayers.ReloadServerData();
     }
 
-    private async Task<IEnumerable<string>?> SearchTopLeaderboard(string? value, CancellationToken token)
+    private async Task OnFilterByGamertagForTopMonthlyPlayersChanged(string? newValue)
+    {
+        filterTopMonthlyLeaderboardGamertag = newValue;
+        await topMonthlyPlayers.ReloadServerData();
+    }
+
+    private async Task OnFilterByGamertagForTopTeammatePairChanged(string? newValue)
+    {
+        filterTopTeammatePairGamertag = newValue;
+        await topTeammatePairs.ReloadServerData();
+    }
+
+    private async Task OnFilterByGamertagForTopMonthlyTeammatePairChanged(string? newValue)
+    {
+        filterTopMonthlyTeammatePairGamertag = newValue;
+        await topMonthlyTeammatePairs.ReloadServerData();
+    }
+
+    private async Task<IEnumerable<string>?> SearchGamertags(string? value, CancellationToken token)
     {
         if (string.IsNullOrEmpty(value))
             return gamertags;
@@ -193,7 +309,6 @@ else if (leaderboard is not null)
     {
         try
         {
-            leaderboard = await Http.GetFromJsonAsync<GetLeaderboardResponse>($"/api/leaderboard/{game}");
             gamertags = await Http.GetFromJsonAsync<List<string>>($"/api/gamertag/search?Game={LeaderboardRouteMapper.MapRouteToGameEnum(Game)}");
         }
         catch (Exception ex)
@@ -203,20 +318,62 @@ else if (leaderboard is not null)
         isLoading = false;
     }
 
-    private async Task<TableData<LeaderboardPlayer>> ReloadTopPlayersTable(TableState state, CancellationToken token)
+    private Task<TableData<LeaderboardPlayer>> ReloadTopPlayersTable(TableState state, CancellationToken token)
+    {
+        return ReloadTopPlayers(state, false, filterTopLeaderboardGamertag, token);
+    }
+
+    private Task<TableData<LeaderboardPlayer>> ReloadTopMonthlyPlayersTable(TableState state, CancellationToken token)
+    {
+        return ReloadTopPlayers(state, true, filterTopMonthlyLeaderboardGamertag, token);
+    }
+
+    private async Task<TableData<LeaderboardPlayer>> ReloadTopPlayers(TableState state, bool isMonthly, string? filterByGamertag, CancellationToken token)
     {
         var request = new GetLeaderboardPlayersRequest
         {
             SortDirection = state.SortDirection.ToSortDirection(),
-            PageNumber = state.Page + 1,
+            PageNumber = state.Page + 1, // MudTable uses 0-based page index, API expects 1-based
             PageSize = state.PageSize,
             SortedBy = state.SortLabel,
-            IsMonthly = false,
-            SearchGamertag = filterTopLeaderboardGamertag
+            IsMonthly = isMonthly,
+            SearchGamertag = filterByGamertag
         };
         var game = MapRouteToGameEnum();
-        var leaderboard = await Http.GetFromJsonAsync<GetLeaderboardPlayersResponse>($"/api/leaderboard/{game}/top-players?{ToQueryString(request)}");
+        var leaderboard = await Http.GetFromJsonAsync<GetLeaderboardPlayersResponse>($"/api/leaderboard/{game}/top-players?{ToQueryString(request)}", token);
         return new TableData<LeaderboardPlayer>
+        {
+            Items = leaderboard!.Records,
+            TotalItems = leaderboard.TotalRecords
+        };
+    }
+
+    private Task<TableData<LeaderboardTeammatePair>> ReloadTopTeammatePairsTable(TableState state, CancellationToken token)
+    {
+        return ReloadTopTeammatePairs(state, false, filterTopTeammatePairGamertag, token);
+    }
+
+    private Task<TableData<LeaderboardTeammatePair>> ReloadTopMonthlyTeammatePairsTable(TableState state, CancellationToken token)
+    {
+        return ReloadTopTeammatePairs(state, true, filterTopTeammatePairGamertag, token);
+    }
+
+    private async Task<TableData<LeaderboardTeammatePair>> ReloadTopTeammatePairs(TableState state, bool isMonthly, string? searchGamertag, CancellationToken token)
+    {
+        var request = new GetLeaderboardTeammatePairsRequest
+        {
+            SortDirection = state.SortDirection.ToSortDirection(),
+            PageNumber = state.Page + 1, // MudTable uses 0-based page index, API expects 1-based
+            PageSize = state.PageSize,
+            SortedBy = state.SortLabel ?? PageSettings.LeaderboardTeammatePairs.DefaultSortBy,
+            IsMonthly = isMonthly,
+            IsMatchmaking = false,
+            IsCustoms = false,
+            SearchGamertag = searchGamertag
+        };
+        var game = MapRouteToGameEnum();
+        var leaderboard = await Http.GetFromJsonAsync<GetLeaderboardTeammatePairsResponse>($"/api/leaderboard/{game}/top-teammate-pairs?{ToQueryString(request)}", token);
+        return new TableData<LeaderboardTeammatePair>
         {
             Items = leaderboard!.Records,
             TotalItems = leaderboard.TotalRecords
@@ -260,6 +417,24 @@ else if (leaderboard is not null)
         if (!string.IsNullOrWhiteSpace(request.SearchGamertag))
             query.Add($"SearchGamertag={Uri.EscapeDataString(request.SearchGamertag)}");
 
+        return string.Join("&", query);
+    }
+
+    private string ToQueryString(GetLeaderboardTeammatePairsRequest request)
+    {
+        var query = new List<string>
+        {
+            $"SortDirection={request.SortDirection}",
+            $"PageNumber={request.PageNumber}",
+            $"PageSize={request.PageSize}",
+            $"IsMonthly={request.IsMonthly}",
+            $"IsMatchmaking={request.IsMatchmaking}",
+            $"IsCustoms={request.IsCustoms}"
+        };
+        if (!string.IsNullOrWhiteSpace(request.SortedBy))
+            query.Add($"SortedBy={Uri.EscapeDataString(request.SortedBy)}");
+        if (!string.IsNullOrWhiteSpace(request.SearchGamertag))
+            query.Add($"SearchGamertag={Uri.EscapeDataString(request.SearchGamertag)}");
         return string.Join("&", query);
     }
 }

@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS Usp_SearchTopTeammatePairs(smallint, boolean, boolean, boolean, text, int, text, text, int, int);

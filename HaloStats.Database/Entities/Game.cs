@@ -22,6 +22,7 @@ public class Game
     public DateTime? DeletedAt { get; set; }
     public string? DeletedByIp { get; set; }
     public required List<GamePlayer> Players { get; set; }
+    public int TeamSize { get; set; }
 
     public Game()
     {
@@ -78,9 +79,14 @@ public class Game
         return thisTotal > maxPrevTotal;
     }
 
-    
+    public void SetCalculatedFields()
+    {
+        CalcualtePlayerStandings();
+        CalculateTeamSize();
+        CalculateKilledMostGamertags();
+    }
 
-    public void CalcualtePlayerStandings()
+    private void CalcualtePlayerStandings()
     {
         if (Players == null || Players.Count == 0)
             return;
@@ -116,6 +122,47 @@ public class Game
         {
             var winner = rankedPlayers.First();
             winner.IsWinner = true;
+        }
+    }
+
+    private void CalculateTeamSize()
+    {
+        if (Players == null || Players.Count == 0 || !IsTeamsEnabled)
+        {
+            TeamSize = 0;
+            return;
+        }
+
+        var teamSizes = Players
+            .GroupBy(p => p.TeamId)
+            .Select(g => g.Count())
+            .ToList();
+        TeamSize = teamSizes.Max();
+    }
+
+    private void CalculateKilledMostGamertags() {         
+        if (Players == null || Players.Count == 0)
+            return;
+
+        foreach (var player in Players)
+        {
+            if (player.KilledMostPlayerIndex != -1 && Players.Count() - 1 >= player.KilledMostPlayerIndex)
+            {
+                player.KilledMostGamertag = Players[player.KilledMostPlayerIndex].Gamertag;
+            }
+            else
+            {
+                player.KilledMostGamertag = null;
+            }
+
+            if (player.MostKilledByPlayerIndex != -1 && Players.Count() - 1 >= player.MostKilledByPlayerIndex)
+            {
+                player.MostKilledByGamertag = Players[player.MostKilledByPlayerIndex].Gamertag;
+            }
+            else
+            {
+                player.MostKilledByGamertag = null;
+            }
         }
     }
 

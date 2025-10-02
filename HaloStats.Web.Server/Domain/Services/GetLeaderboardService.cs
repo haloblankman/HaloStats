@@ -1,15 +1,13 @@
 ﻿using HaloStats.Web.Server.Domain.Repositories;
-using HaloStats.Web.Shared.Constants;
 using HaloStats.Web.Shared.Contracts.Leaderboard;
 using HaloStats.Web.Shared.Enums;
-using HaloStats.Web.Shared.Infrastructure;
 
 namespace HaloStats.Web.Server.Domain.Services;
 
 public interface IGetLeaderboardService
 {
-    Task<GetLeaderboardResponse> GetLeaderboard(HaloGames game);
     Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request);
+    Task<GetLeaderboardTeammatePairsResponse> SearchTopTeammatePairs(HaloGames game, GetLeaderboardTeammatePairsRequest request);
 }
 
 public class GetLeaderboardService : IGetLeaderboardService
@@ -21,32 +19,59 @@ public class GetLeaderboardService : IGetLeaderboardService
         this.gameAnalyticsRepo = gameAnalyticsRepo;
     }
 
-    public async Task<GetLeaderboardResponse> GetLeaderboard(HaloGames game)
+    public async Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request)
     {
-        var topPlayersByKillCountThisMonth = await gameAnalyticsRepo.SearchTopPlayers(game,
-            new GetLeaderboardPlayersRequest
-            {
-                IsMonthly = true,
-                PageNumber = 1,
-                PageSize = PageSettings.Leaderboard.DefaultLeaderboardPlayersPageSize,
-                SortDirection = SortDirection.Descending,
-                SortedBy = PageSettings.Leaderboard.DefaultSortBy
-            });
-        var topTeammatePairs = await gameAnalyticsRepo.GetTopTeammatePairs(null, game);
-        var topTeammatePairsByWins = await gameAnalyticsRepo.GetTopTeammatePairsByWins(null, game);
+        var topPlayers = await gameAnalyticsRepo.SearchTopPlayers(game, request);
+        var totalPlayers = topPlayers.Count > 0 ? topPlayers[0].TotalCount : 0;
 
-        return new GetLeaderboardResponse
+        var isNextPage = topPlayers.Count > request.PageSize;
+        if (isNextPage)
+            topPlayers.RemoveAt(topPlayers.Count - 1);
+
+        var records = topPlayers.Select(p => new LeaderboardPlayer
         {
-            Game = game,
-            TopPlayersThisMonth = topPlayersByKillCountThisMonth,
-            TopTeammatePairs = topTeammatePairs,
-            TopTeammatePairsByWins = topTeammatePairsByWins
+            Rank = p.Rank,
+            Gamertag = p.Gamertag,
+            Kills = p.Kills,
+            Deaths = p.Deaths,
+            KillDeathRatio = p.KillDeathRatio
+        }).ToList();
+
+        return new GetLeaderboardPlayersResponse
+        {
+            Records = records,
+            TotalRecords = totalPlayers,
+            Parameters = request,
+            IsNextPage = isNextPage
         };
     }
 
-    public async Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request)
+    public async Task<GetLeaderboardTeammatePairsResponse> SearchTopTeammatePairs(HaloGames game, GetLeaderboardTeammatePairsRequest request)
     {
-        var response = await gameAnalyticsRepo.SearchTopPlayers(game, request);
-        return response;
+        var pairs = await gameAnalyticsRepo.SearchTopTeammatePairs(game, request);
+        var totalRecords = pairs.Count > 0 ? pairs[0].TotalCount : 0;
+
+        var isNextPage = pairs.Count > request.PageSize;
+        if (isNextPage)
+            pairs.RemoveAt(pairs.Count - 1);
+
+        var records = pairs.Select(p => new LeaderboardTeammatePair
+        {
+            Rank = p.Rank,
+            PlayerOneGamertag = p.PlayerOneGamertag,
+            PlayerTwoGamertag = p.PlayerTwoGamertag,
+            GamesPlayedTogether = p.GamesPlayedTogether,
+            WinsTogether = p.WinsTogether,
+            LossesTogether = p.LossesTogether,
+            WinRate = p.WinRate,
+        }).ToList();
+
+        return new GetLeaderboardTeammatePairsResponse
+        {
+            Records = records,
+            TotalRecords = totalRecords,
+            Parameters = request,
+            IsNextPage = isNextPage
+        };
     }
 }

@@ -28,18 +28,16 @@
     <None Update="Sql\StoredProcedures\Usp_GetTopOpponents_down.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Sql\StoredProcedures\Usp_GetTopTeammatePairs.sql">
+    <None Update="Sql\StoredProcedures\Usp_SearchTopTeammatePairs.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Sql\StoredProcedures\Usp_GetTopTeammatePairsByWins.sql">
+    <None Update="Sql\StoredProcedures\Usp_SearchTopTeammatePairs_down.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Sql\StoredProcedures\Usp_GetTopTeammatePairsByWins_down.sql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Sql\StoredProcedures\Usp_GetTopTeammatePairs_down.sql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Sql\Migrations\" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,6 @@
 ﻿@using HaloStats.Web.Shared.Constants;
+@using HaloStats.Web.Shared.Contracts.Leaderboard
+@using HaloStats.Web.Shared.Enums;
 @page "/player"
 @inject NavigationManager Navigation
 @inject HttpClient Http
@@ -45,8 +47,10 @@ else
             }
         </MudTabPanel>
         <MudTabPanel Text="Top Teammates">
-            <TopTeammates Data="player.TopTeammates" Title="Top Teammates By Games Played Together" />
-            <TopTeammates Data="player.TopTeammatesByWins" Title="Top Teammates By Wins" />
+            <MudStack>
+                <TopTeammates Title="Top Teammates By Games Played Together" Game="HaloGames.HaloMccAll" IsMonthly="false" Gamertag="@gamertag" @ref="teammatesTable" />
+                <TopTeammates Title="Top Teammates (past month)" Game="HaloGames.HaloMccAll" IsMonthly="true" Gamertag="gamertag" @ref="monthlyTeammatesTable" />
+            </MudStack>
         </MudTabPanel>
         <MudTabPanel Text="Top Opponents">
             <TopOpponents Data="player.TopOpponents" />
@@ -57,6 +61,8 @@ else
 }
 
 @code {
+    private TopTeammates teammatesTable;
+    private TopTeammates monthlyTeammatesTable;
     private string? gamertag;
     private GetPlayerResponse? player;
     private GetPlayerGamesResponse? gamesPlayed;
@@ -100,6 +106,8 @@ else
             gamertag = tag;
             filterByGamertag = filter;
             await LoadFromQueryAsync();
+            await teammatesTable.ReloadAsync();
+            await monthlyTeammatesTable.ReloadAsync();
             StateHasChanged();
         }
     }

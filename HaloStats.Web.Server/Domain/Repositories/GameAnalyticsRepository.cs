@@ -1,5 +1,4 @@
 ﻿using HaloStats.Database;
-using HaloStats.Database.Entities;
 using HaloStats.Database.Entities.StoredProcs;
 using HaloStats.Web.Server.Domain.Mappers;
 using HaloStats.Web.Shared.Contracts.Leaderboard;
@@ -11,9 +10,8 @@ namespace HaloStats.Web.Server.Domain.Repositories;
 
 public interface IGameAnalyticsRepository
 {
-    Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request);
-    Task<TopTeammatePairs> GetTopTeammatePairs(string? gamertag, HaloGames game, int take = 10);
-    Task<TopTeammatePairs> GetTopTeammatePairsByWins(string? gamertag, HaloGames game, int take = 10);
+    Task<List<Usp_SearchTopPlayers>> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request);
+    Task<List<Usp_SearchTopTeammatePairs>> SearchTopTeammatePairs(HaloGames game, GetLeaderboardTeammatePairsRequest request);
     Task<TopOpponents> GetTopOpponents(string? gamertag, HaloGames game, int take = 10);
 
 }
@@ -26,10 +24,10 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
         this.db = db;
     }
 
-    public async Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request)
+    public async Task<List<Usp_SearchTopPlayers>> SearchTopPlayers(HaloGames game, GetLeaderboardPlayersRequest request)
     {
         var gameEnum = game.MapToGameEnum();
-        string sortDir = request.SortDirection is Shared.Infrastructure.SortDirection.None or Shared.Infrastructure.SortDirection.Descending ? "DESC" : "ASC";
+        string sortDir = request.SortDirectionStringDefaultDesc;
         var topPlayers = await db.Set<Usp_SearchTopPlayers>()
             .FromSqlRaw("SELECT * FROM usp_searchtopplayers({0}::smallint,{1},{2}::text,{3},{4},{5},{6})", 
                 gameEnum, 
@@ -41,65 +39,28 @@ public class GameAnalyticsRepository : IGameAnalyticsRepository
                 request.PageSize)
             .ToListAsync();
 
-        var totalPlayers = topPlayers.Count > 0 ? topPlayers[0].TotalCount : 0;
-
-        var isNextPage = topPlayers.Count > request.PageSize;
-        if (isNextPage)
-            topPlayers.RemoveAt(topPlayers.Count - 1);
-
-        var records = topPlayers.Select(p => new LeaderboardPlayer
-        {
-            Rank = p.Rank,
-            Gamertag = p.Gamertag,
-            Kills = p.Kills,
-            Deaths = p.Deaths,
-            KillDeathRatio = p.KillDeathRatio
-        }).ToList();
-
-        return new GetLeaderboardPlayersResponse
-        {
-            Records = records,
-            TotalRecords = totalPlayers,
-            Parameters = request,
-            IsNextPage = isNextPage
-        };
+        return topPlayers;
     }
 
-    private IQueryable<Game> GetGameFilter(HaloGames game)
-    {
-        var gamesFilter = db.Games.AsNoTracking().Where(g => !g.IsDuplicateGame && !g.IsDeleted);
-        if (game != HaloGames.HaloMccAll)
-        {
-            var gameEnum = game.MapToGameEnum();
-            gamesFilter = gamesFilter.Where(g => gameEnum == null || g.GameEnum == gameEnum );
-        }
-        return gamesFilter;
-    }
-
-    public async Task<TopTeammatePairs> GetTopTeammatePairs(string? gamertag, HaloGames game, int take = 10)
+    public async Task<List<Usp_SearchTopTeammatePairs>> SearchTopTeammatePairs(HaloGames game, GetLeaderboardTeammatePairsRequest request)
     {
         var gameEnum = game.MapToGameEnum();
-        var pairs = await db.Set<Usp_GetTopTeammatePairs>()
-            .FromSqlRaw("SELECT * FROM usp_gettopteammatepairs({0},{1},{2})", gamertag, gameEnum, take)
+        string sortDir = request.SortDirectionStringDefaultDesc;
+        var topPairs = await db.Set<Usp_SearchTopTeammatePairs>()
+            .FromSqlRaw("SELECT * FROM usp_searchtopteammatepairs({0}::smallint,{1},{2},{3},{4}::text,{5},{6},{7},{8},{9})",
+                gameEnum,
+                request.IsMonthly ?? false,
+                request.IsMatchmaking ?? false,
+                request.IsCustoms ?? false,
+                request.SearchGamertag,
+                5,
+                request.SortedBy ?? "WinRate",
+                sortDir,
+                request.PageNumber,
+                request.PageSize)
             .ToListAsync();
-        return new TopTeammatePairs
-        {
-            Pairs = pairs.Select((p, i) => p.ToTopTeammatePairs(i + 1)).ToList()
-        };
+        return topPairs;
     }
-
-    public async Task<TopTeammatePairs> GetTopTeammatePairsByWins(string? gamertag, HaloGames game, int take = 10)
-    {
-        var gameEnum = game.MapToGameEnum();
-        var pairs = await db.Set<Usp_GetTopTeammatePairs>()
-            .FromSqlRaw("SELECT * FROM usp_gettopteammatepairsbywins({0},{1},{2})", gamertag, gameEnum, take)
-            .ToListAsync();
-        return new TopTeammatePairs
-        {
-            Pairs = pairs.Select((p, i) => p.ToTopTeammatePairs(i + 1)).ToList()
-        };
-    }
-
 
     public async Task<TopOpponents> GetTopOpponents(string? gamertag, HaloGames game, int take = 10)
     {

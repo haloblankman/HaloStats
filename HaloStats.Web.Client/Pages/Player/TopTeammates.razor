@@ -1,37 +1,108 @@
-﻿@using HaloStats.Web.Shared.Contracts.Player
+﻿@using HaloStats.Web.Client.Infrastructure.Extensions
+@using HaloStats.Web.Shared.Constants
+@using HaloStats.Web.Shared.Contracts.Leaderboard
+@using HaloStats.Web.Shared.Enums
 @using MudBlazor
 
+@inject HttpClient Http
 
-@if (Data == null || Data.Teammates == null || Data.Teammates.Count == 0)
-{
-    <MudText>No data available.</MudText>
-    return;
-}
-<MudText Typo="Typo.h6" Class="mt-4">@Title</MudText>
-<MudTable Items="Data.Teammates">
+<MudTable T="LeaderboardTeammatePair"
+    ServerData="ReloadTeammatePairsTable"
+    Dense="true"
+    @ref="table"
+    RowsPerPage="PageSettings.LeaderboardTeammatePairs.DefaultPageSize">
+
+    <ToolBarContent>
+        <MudText Typo="Typo.h4">@Title</MudText><br />
+    </ToolBarContent>
+
     <HeaderContent>
-        <MudTh>Rank</MudTh>
         <MudTh>Gamertag</MudTh>
-        <MudTh>Games Played Together</MudTh>
-        <MudTh>Wins Together</MudTh>
-        <MudTh>Losses Together</MudTh>
-        <MudTh>Win Rate</MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="@PageSettings.PlayerTeammatePairs.SortGamesPlayedTogether" T="LeaderboardTeammatePair">Games Played</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="@PageSettings.PlayerTeammatePairs.SortWinsTogether" T="LeaderboardTeammatePair">Wins</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="@PageSettings.PlayerTeammatePairs.SortLossesTogether" T="LeaderboardTeammatePair">Losses</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="@PageSettings.PlayerTeammatePairs.SortWinRate" T="LeaderboardTeammatePair">Win Rate</MudTableSortLabel>
+        </MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="Rank">@context.Rank</MudTd>
         <MudTd DataLabel="Gamertag">
-            <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.TeammateGamertag)}")">
-                @context.TeammateGamertag
+            <MudLink Href="@($"/player?gamertag={Uri.EscapeDataString(context.PlayerTwoGamertag)}")">
+                @context.PlayerTwoGamertag
             </MudLink>
         </MudTd>
-        <MudTd DataLabel="Games Played Together">@context.GamesPlayedTogether</MudTd>
-        <MudTd DataLabel="Wins Together">@context.WinsTogether</MudTd>
-        <MudTd DataLabel="Losses Together">@context.LossesTogether</MudTd>
+        <MudTd DataLabel="Games Played">@context.GamesPlayedTogether</MudTd>
+        <MudTd DataLabel="Wins">@context.WinsTogether</MudTd>
+        <MudTd DataLabel="Losses">@context.LossesTogether</MudTd>
         <MudTd DataLabel="Win Rate">@context.WinRate.ToString("P1")</MudTd>
     </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No matching records found</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+    </PagerContent>
 </MudTable>
 
 @code {
-    [Parameter] public HaloStats.Web.Shared.Contracts.Shared.TopTeammates? Data { get; set; }
     [Parameter] public required string Title { get; set; }
+    [Parameter] public bool IsMonthly { get; set; }
+    [Parameter] public HaloGames Game { get; set; }
+    [Parameter] public string Gamertag { get; set; }
+
+    private MudTable<LeaderboardTeammatePair> table;
+
+    public async Task ReloadAsync()
+    {
+        if (table != null)
+            await table.ReloadServerData();
+    }
+
+    private async Task<TableData<LeaderboardTeammatePair>> ReloadTeammatePairsTable(TableState state, CancellationToken token)
+    {
+        var request = new GetLeaderboardTeammatePairsRequest
+        {
+            SortDirection = state.SortDirection.ToSortDirection(),
+            PageNumber = state.Page + 1, // MudTable uses 0-based page index, API expects 1-based
+            PageSize = state.PageSize,
+            SortedBy = state.SortLabel ?? PageSettings.PlayerTeammatePairs.DefaultSortBy,
+            IsMonthly = IsMonthly,
+            IsMatchmaking = false,
+            IsCustoms = false,
+            SearchGamertag = Gamertag
+        };
+        var leaderboard = await Http.GetFromJsonAsync<GetLeaderboardTeammatePairsResponse>($"/api/leaderboard/{Game}/top-teammate-pairs?{ToQueryString(request)}", token);
+        return new TableData<LeaderboardTeammatePair>
+        {
+            Items = leaderboard!.Records,
+            TotalItems = leaderboard.TotalRecords
+        };
+    }
+
+    private string ToQueryString(GetLeaderboardTeammatePairsRequest request)
+    {
+        var query = new List<string>
+        {
+            $"SortDirection={request.SortDirection}",
+            $"PageNumber={request.PageNumber}",
+            $"PageSize={request.PageSize}",
+            $"IsMonthly={request.IsMonthly}",
+            $"IsMatchmaking={request.IsMatchmaking}",
+            $"IsCustoms={request.IsCustoms}"
+        };
+        if (!string.IsNullOrWhiteSpace(request.SortedBy))
+            query.Add($"SortedBy={Uri.EscapeDataString(request.SortedBy)}");
+        if (!string.IsNullOrWhiteSpace(request.SearchGamertag))
+            query.Add($"SearchGamertag={Uri.EscapeDataString(request.SearchGamertag)}");
+        return string.Join("&", query);
+    }
 }

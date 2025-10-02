@@ -18,17 +18,17 @@ namespace HaloStats.Web.Server.Controllers
         }
 
         [HttpGet]
-        [Route("{game}")]
-        public Task<GetLeaderboardResponse> GetLeaderboard(HaloGames game)
-        {
-            return getLeaderboardService.GetLeaderboard(game);
-        }
-
-        [HttpGet]
         [Route("{game}/top-players")]
         public Task<GetLeaderboardPlayersResponse> SearchTopPlayers(HaloGames game, [FromQuery] GetLeaderboardPlayersRequest request)
         {
             return getLeaderboardService.SearchTopPlayers(game, request);
+        }
+
+        [HttpGet]
+        [Route("{game}/top-teammate-pairs")]
+        public Task<GetLeaderboardTeammatePairsResponse> SearchTopTeammatePairs(HaloGames game, [FromQuery] GetLeaderboardTeammatePairsRequest request)
+        {
+            return getLeaderboardService.SearchTopTeammatePairs(game, request);
         }
     }
 }
