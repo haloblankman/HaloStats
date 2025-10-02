@@ -49,7 +49,7 @@ else
         <MudTabPanel Text="Top Teammates">
             <MudStack>
                 <TopTeammates Title="Top Teammates By Games Played Together" Game="HaloGames.HaloMccAll" IsMonthly="false" Gamertag="@gamertag" @ref="teammatesTable" />
-                <TopTeammates Title="Top Teammates (past month)" Game="HaloGames.HaloMccAll" IsMonthly="true" Gamertag="gamertag" @ref="monthlyTeammatesTable" />
+                <TopTeammates Title="Top Teammates (past month)" Game="HaloGames.HaloMccAll" IsMonthly="true" Gamertag="@gamertag" @ref="monthlyTeammatesTable" />
             </MudStack>
         </MudTabPanel>
         <MudTabPanel Text="Top Opponents">

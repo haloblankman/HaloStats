@@ -22,10 +22,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Sql\Migrations\20251002_AddTeamSizeAndMostKilledGamertagToGames.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Sql\StoredProcedures\Usp_GetTopOpponents.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Sql\StoredProcedures\Usp_GetTopOpponents_down.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sql\StoredProcedures\Usp_SearchTopPlayers.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sql\StoredProcedures\Usp_SearchTopPlayers_down.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Sql\StoredProcedures\Usp_SearchTopTeammatePairs.sql">
