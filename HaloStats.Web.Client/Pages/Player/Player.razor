@@ -106,8 +106,10 @@ else
             gamertag = tag;
             filterByGamertag = filter;
             await LoadFromQueryAsync();
-            await teammatesTable.ReloadAsync();
-            await monthlyTeammatesTable.ReloadAsync();
+            if (teammatesTable != null)
+                await teammatesTable.ReloadAsync();
+            if (monthlyTeammatesTable != null)
+                await monthlyTeammatesTable.ReloadAsync();
             StateHasChanged();
         }
     }
